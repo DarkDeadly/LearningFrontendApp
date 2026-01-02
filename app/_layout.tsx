@@ -1,24 +1,36 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Stack } from "expo-router";
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
 
+      // How long data stays "fresh" (won't refetch)
+      staleTime: 5 * 60 * 1000,  // 5 minutes
+           
+      // Retry failed requests
+      retry: 2,
+      
+      // Don't refetch when window regains focus (mobile doesn't need this)
+      refetchOnWindowFocus: false,
+      
+      // Don't refetch when component remounts
+      refetchOnMount: false,
+    },
+    mutations: {
+      // Retry failed mutations once
+      retry: 1,
+    },
+  },
+});
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+  <QueryClientProvider client={queryClient}>
+    <Stack screenOptions={{headerShown : false}} >
+    <Stack.Screen name="index" /> 
+    <Stack.Screen name="(auth)" />
+    <Stack.Screen name="(pupil)"/>
+    <Stack.Screen name="(teacher)"/>
+  </Stack>
+  </QueryClientProvider>
+  )
 }

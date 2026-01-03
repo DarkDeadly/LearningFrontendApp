@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Tabs } from 'expo-router'
 
-const tabsScreens = () => {
+const tabsLayout = () => {
   return (
-    <Tabs 
-    screenOptions={{
+    <Tabs
+     screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#6366F1',
         tabBarInactiveTintColor: '#9CA3AF',
@@ -18,7 +18,7 @@ const tabsScreens = () => {
         },
         tabBarShowLabel : false
       }}>
-        <Tabs.Screen 
+     <Tabs.Screen 
          options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
@@ -39,7 +39,7 @@ const tabsScreens = () => {
             <Ionicons name="book-sharp" size={size} color={color} />
           ),
         }}
-        name='class' />
+        name='classes' />
         <Tabs.Screen 
         options={{
           title: 'المكافآت',
@@ -56,8 +56,10 @@ const tabsScreens = () => {
           ),
         }}
         name='profile' />
+
     </Tabs>
   )
 }
 
-export default tabsScreens
+export default tabsLayout
+

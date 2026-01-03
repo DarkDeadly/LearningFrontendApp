@@ -17,8 +17,8 @@ export const authAPI = {
     return response.data;
   },
   logout: async () => {
-    const response = await apiClient.post('/users/logout');
-    return response.data;
+     await apiClient.post('/users/logout');
+    return true
   },
 
   // Logout from all devices

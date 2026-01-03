@@ -69,12 +69,6 @@ export default function Login() {
       
       console.log('✅ Login successful:', result);
       
-      // Navigate based on role
-      const route = result.user.role === 'pupil' 
-         ? '/(pupil)/(tabs)' 
-        : '/(teacher)/(tabs)';
-      
-      router.replace(route);
       
     } catch (error) {
       console.error('❌ Login error:', error);

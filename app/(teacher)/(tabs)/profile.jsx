@@ -1,5 +1,3 @@
-// app/(pupil)/(tabs)/profile/index.tsx  (or wherever your ProfileScreen is)
-
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -35,25 +33,13 @@ const ProfileScreen = () => {
         {/* Anime Avatar - Replace with your asset or user's avatar */}
         <View style={styles.avatarContainer}>
           <Image
-            source={require('../../../assets/images/studentIcon.jpeg')} // Your anime avatar
+            source={require('../../../assets/images/professor.png')} // Your anime avatar
             style={styles.avatar}
           />
         </View>
 
         <Text style={styles.name}>{user.fullname}</Text>
       </LinearGradient>
-
-      {/* Points Card */}
-      <View style={styles.pointsCard}>
-        <Text style={styles.pointsLabel}>نقاطك الحالية</Text>
-        <View style={styles.pointsRow}>
-          <Text style={styles.points}>{user.pointBalance || 0}</Text>
-          <Text style={styles.coinEmoji}>🪙</Text>
-        </View>
-        <Text style={styles.pointsMessage}>
-        استمر في التعلم واجمع المزيد من النقاط
-        </Text>
-      </View>
 
       {/* Email Section */}
       <View style={styles.section}>
@@ -130,43 +116,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  pointsCard: {
-    margin: 20,
-   
-    backgroundColor: '#2171BE',
-    borderRadius: 20,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  pointsLabel: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  pointsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  points: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginRight: 10,
-  },
-  coinEmoji: {
-    fontSize: 40,
-  },
-  pointsMessage: {
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'center',
-  },
+ 
+  
   section: {
     marginHorizontal: 20,
     marginTop: 20,

@@ -4,44 +4,45 @@ import { useRouter } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCurrentUser } from '../../../src/hooks/useAuth';
 
-const HomeScreen = () => {
-  const { user } = useCurrentUser();
-  const router = useRouter();
+const homeScreen = () => {
 
-  if (!user) return null;
+    const { user } = useCurrentUser();
+    const router = useRouter();
+    
+      if (!user) return null;
 
-  const cards = [
+    const cards = [
     {
-      icon: 'book-outline',
-      title: 'دروسي',
-      subtitle: 'اطلع على صفوفك المسجلة',
-      color: '#4A90E2',
-      onPress: () => router.push('/class'), // Change to your route
+        title : "إدارة الدروس",
+        subtitle : "قم بإنشاء وتحرير دروسك",
+        icon: 'book-outline',
+        color: '#4A90E2',
+        onPress: () => router.push('/classes')
     },
     {
-      icon: 'gift-outline',
-      title: 'المكافآت',
-      subtitle: 'تحقق من مكافآتك ونقاطك',
-      color: '#4A90E2',
-      onPress: () => router.push('/rewards'),
+        title : "المكافآت",
+        subtitle : "عرض وإدارة المكافآت",
+        icon : "gift",
+        color: '#4A90E2',
+        onPress: () => router.push('/rewards')
     },
     {
-      icon: 'chatbubble-outline',
-      title: 'الرسائل',
-      subtitle: 'تواصل مع المعلمين والزملاء',
-      color: '#4A90E2',
-      onPress: () => router.push('/messages'),
+        title : "الرسائل",
+        subtitle : "تواصل مع التلاميذ والزملاء",
+        icon : "chatbubbles",
+        color: '#4A90E2',
+        onPress: () => router.push('/messages')
     },
     {
-      icon: 'trophy-outline',
-      title: 'نقاطي',
-      subtitle: 'عرض نقاطك الحالية',
-      color: '#4A90E2',
-      onPress: () => router.push('/profile'),
-    },
-  ];
+        title : "إدارة النقاط",
+        subtitle : " عرض وإدارة النقاط",
+        icon : "trophy",
+        color: '#4A90E2',
+         onPress: () => router.push('/profile')
+    }
+]
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+   <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header with Avatar */}
       <LinearGradient colors={['#4A90E2', '#2171BE']} style={styles.header}>
         <Text style={styles.welcomeText}>مرحباً بعودتك</Text>
@@ -49,7 +50,7 @@ const HomeScreen = () => {
         {/* Anime Avatar */}
         <View style={styles.avatarContainer}>
           <Image
-            source={require('../../../assets/images/studentIcon.jpeg')} // Your anime avatar
+            source={require('../../../assets/images/professor.png')} 
             style={styles.avatar}
           />
         </View>
@@ -78,7 +79,7 @@ const HomeScreen = () => {
   )
 }
 
-export default HomeScreen
+export default homeScreen
 
 const styles = StyleSheet.create({
   container: {

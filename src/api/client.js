@@ -109,7 +109,8 @@ apiClient.interceptors.response.use(
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
-      originalRequest.url?.includes('/users/refresh')
+      originalRequest.url?.includes('/users/refresh') ||
+      !(await storage.getToken())  // ← If no token, don't try refresh
     ) {
       return Promise.reject(error);
     }

@@ -1,6 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const EmptyState = ({subtitle ="ابدأ بإنشاء فصل دراسي جديد لدعوة تلاميذك" , teacherValid = true}) => {
+  
+  const router = useRouter()
+
   return (
    <View style={styles.emptyContainer}>
       <Ionicons name="school-outline" size={80} color="#ccc" />
@@ -10,7 +15,7 @@ const EmptyState = ({subtitle ="ابدأ بإنشاء فصل دراسي جديد
       </Text>
      {teacherValid &&  <TouchableOpacity
         style={styles.createFirstButton}
-        onPress={() => router.push('/(teacher)/create-classroom')}
+        onPress={() => router.push('/(teacher)/ClassAdd')}
       >
         <Text style={styles.createFirstText}>إنشاء فصل جديد</Text>
       </TouchableOpacity>}

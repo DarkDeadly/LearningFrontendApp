@@ -5,13 +5,14 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const RenderClass = ({ item }) => {
+  console.log(item)
   const router = useRouter();
 
   return (
     <TouchableOpacity
       style={styles.classCard}
       activeOpacity={0.9}
-      onPress={() => router.push(`/(teacher)/classroom/${item.id}`)}
+      onPress={() => router.push(`/(teacher)/classes/${item.id}`)}
     >
       <LinearGradient
         colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
@@ -45,12 +46,6 @@ const RenderClass = ({ item }) => {
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.stat}>
-            <Ionicons name="people-outline" size={18} color="#666" />
-            <Text style={styles.statText}>
-              {item.pupilsCount || 0} تلميذ
-            </Text>
-          </View>
-          <View style={styles.stat}>
             <Ionicons name="calendar-outline" size={18} color="#666" />
             <Text style={styles.statText}>
               {new Date(item.createdAt).toLocaleDateString('ar-SA', {
@@ -68,22 +63,11 @@ const RenderClass = ({ item }) => {
             style={styles.actionButton}
             onPress={(e) => {
               e.stopPropagation();
-              router.push(`/(teacher)/classroom/${item.id}/pupils`);
+              router.push(`/(teacher)/classes/${item.id}`);
             }}
           >
-            <Ionicons name="eye-outline" size={20} color="#8B5CF6" />
-            <Text style={styles.actionText}>عرض التلاميذ</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              router.push(`/(teacher)/classroom/${item.id}/points`);
-            }}
-          >
-            <Ionicons name="add-circle-outline" size={20} color="#8B5CF6" />
-            <Text style={styles.actionText}>إدارة النقاط</Text>
+            <Ionicons name="settings" size={20} color="#8B5CF6" />
+            <Text style={styles.actionText}> ادارة الدروس و التلاميذ </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -173,10 +157,12 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent:"center",
     backgroundColor: '#F0E7FF',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
+    flex: 1
   },
   actionText: {
     color: '#8B5CF6',

@@ -11,10 +11,19 @@ export const useGetMyClassroom = () => {
     })
 }
 
+export const useGetClassroomPupils = (classroomId) => {
+  return useQuery({
+    queryKey: ['classroom', classroomId, 'pupils'],
+    queryFn: () => classroomApi.getClassroomPupils(classroomId),
+    staleTime: 7 * 60 * 1000,
+    enabled: !!classroomId, // optional but recommended,
+  })
+}
+
 export const useGetAllClassrooms = () => {
   return useQuery({
     queryKey : ['classroom'] , 
-    queryFn: classroomApi.getAllClasses,
+    queryFn: () => classroomApi.getAllClasses,
     staleTime : 7 * 60 * 1000 ,
     select : (data) => data.classrooms || []
   })
@@ -30,6 +39,7 @@ export const useCreateClassroom = () => {
       
       // Invalidate and refetch classrooms list
       queryClient.invalidateQueries({ queryKey: ['classrooms', 'my'] });
+      
     },
     onError: (error) => {
       console.error('❌ Create classroom error:', error);
@@ -54,6 +64,18 @@ export const useJoinClassroom = () => {
     },
     onError: (error) => {
       console.error('❌ Join classroom error:', error);
+      const serverMessage = error.response?.data?.message || "حدث خطأ ما";
+  console.error('❌ Join classroom error:', serverMessage);
     },
   });
 };
+
+export const useClassroomDetails = (classroomId) => {
+  return useQuery({
+    queryKey : ['classrooms' , classroomId ],
+    queryFn : () => classroomApi.getClassroomDetails(classroomId),
+    staleTime: 7 * 60 * 1000,
+    enabled: !!classroomId, // optional but recommended,
+    select : (data) => data.classroom || []
+    })
+}

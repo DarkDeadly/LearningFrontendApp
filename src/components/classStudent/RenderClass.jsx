@@ -2,9 +2,31 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useJoinClassroom } from '../../hooks/useClassroom';
+import { validateJoinClassroom } from '../../util/classValidation';
 
 const RenderClass = ({ item }) => {
+    console.log(item)
     const [pin, setPin] = useState("")
+    const [Error, setError] = useState({})
+    const { mutate: joinClassroom, isPending: Loading, error: serverError } = useJoinClassroom()
+
+    const handleJoinClassroom = (classId, pinCode) => {
+        const validationErrors = validateJoinClassroom(classId, pinCode);
+
+        if (Object.keys(validationErrors).length > 0) {
+            setError(validationErrors);
+            return;
+        }
+
+        setError({});
+
+        joinClassroom({
+            classroomId: classId,
+            pin: pinCode,
+        });
+
+    };
     return (
         <TouchableOpacity
             style={styles.classCard}
@@ -41,6 +63,11 @@ const RenderClass = ({ item }) => {
                 )}
 
                 {/* Stats Row */}
+                {serverError && (
+                    <Text style={styles.errorText}>
+                        {serverError.response?.data?.message || "حدث خطأ أثناء الانضمام"}
+                    </Text>
+                )}
                 <View style={styles.statsRow}>
                     <View style={styles.stat}>
                         <Ionicons name="people-outline" size={18} color="#666" />
@@ -66,17 +93,23 @@ const RenderClass = ({ item }) => {
                         style={styles.pinInput}
                         placeholder="رمز الفصل"
                         placeholderTextColor="#999"
-                        keyboardType="numeric"
+                        keyboardType="number-pad"
                         value={pin}
                         onChangeText={setPin}
                         maxLength={4}
                     />
 
                     <TouchableOpacity
-                        style={styles.actionButton}
-
+                        style={[
+                            styles.actionButton,
+                            Loading && { opacity: 0.6 }
+                        ]}
+                        onPress={() => handleJoinClassroom(item._id, pin)}
+                        disabled={Loading}
                     >
-                        <Text style={styles.actionText}>الانضمام إلى الفصل</Text>
+                        <Text style={styles.actionText}>
+                            {Loading ? 'جاري الانضمام...' : 'الانضمام إلى الفصل'}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -97,6 +130,12 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.15,
         shadowRadius: 16,
+    },
+    errorText: {
+        color: '#DC2626',
+        fontSize: 12,
+        marginBottom: 6,
+        textAlign: 'right',
     },
     cardContent: {
         padding: 20,

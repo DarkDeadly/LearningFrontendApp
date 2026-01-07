@@ -1,9 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import EmptyState from '../../../src/components/classTeacher/EmptyState';
-import RenderClass from '../../../src/components/classTeacher/RenderClass';
-import { useGetMyClassroom } from "../../../src/hooks/useClassroom";
+import EmptyState from '../../../../src/components/classTeacher/EmptyState';
+import RenderClass from '../../../../src/components/classTeacher/RenderClass';
+import { useGetMyClassroom } from "../../../../src/hooks/useClassroom";
 
 const classScreen = () => {
   const {data : classrooms , isLoading } = useGetMyClassroom()

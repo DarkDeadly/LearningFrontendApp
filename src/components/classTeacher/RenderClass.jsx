@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const RenderClass = ({ item }) => {
-  console.log(item)
   const router = useRouter();
 
   return (
@@ -22,7 +21,7 @@ const RenderClass = ({ item }) => {
       <View style={styles.cardContent}>
         {/* Header Row */}
         <View style={styles.headerRow}>
-          <Text style={styles.className}>{item.name}</Text>
+          <Text style={styles.className}>{item?.name}</Text>
           <View style={[
             styles.statusBadge, 
             item.isActive ? styles.active : styles.inactive

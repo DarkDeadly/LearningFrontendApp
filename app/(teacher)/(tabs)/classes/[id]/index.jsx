@@ -11,8 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useClassroomDetails, useGetClassroomPupils } from '../../../../../src/hooks/useClassroom';
-// Assume you have hooks for classroom data
-// import { useClassroomDetail } from '../../../src/hooks/useClassroom';
+
 
 const ClassroomContent = () => {
   const insets = useSafeAreaInsets();
@@ -49,11 +48,11 @@ const ClassroomContent = () => {
 
         {/* Quick Actions */}
         <View style={styles.actionsGrid}>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(teacher)/(tabs)/classes/points')}>
+          <TouchableOpacity style={styles.actionCard} onPress={() => router.push(`(teacher)/(tabs)/classes/${id}/points`)}>
             <Ionicons name="trophy-outline" size={32} color="#8B5CF6" />
             <Text style={styles.actionText}>ادارة نقاط</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(teacher)/(tabs)/classes/courseAdd')}>
+          <TouchableOpacity style={styles.actionCard} onPress={() => router.push(`(teacher)/(tabs)/classes/${id}/courseAdd`)}>
             <Ionicons name="book-outline" size={32} color="#F59E0B" />
             <Text style={styles.actionText}>إضافة دروس</Text>
           </TouchableOpacity>

@@ -19,7 +19,7 @@ const ClassScreen = () => {
                 <ActivityIndicator size="large" color="#8B5CF6" />
                 <Text style={styles.loadingText}>جاري تحميل الفصول...</Text>
               </View>
-            ) : data.length === 0 ? (
+            ) : data?.length === 0 ? (
               <EmptyState subtitle='' teacherValid={false} />
             ) : (
               <FlatList

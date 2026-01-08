@@ -19,13 +19,12 @@ export const useGetClassroomPupils = (classroomId) => {
     enabled: !!classroomId, // optional but recommended,
   })
 }
-
 export const useGetAllClassrooms = () => {
   return useQuery({
-    queryKey : ['classroom'] , 
-    queryFn: () => classroomApi.getAllClasses,
-    staleTime : 7 * 60 * 1000 ,
-    select : (data) => data.classrooms || []
+    queryKey: ['classrooms'],
+    queryFn: classroomApi.getAllClasses,
+    staleTime: 7 * 60 * 1000,
+    select: (data) => data.classrooms || []
   })
 }
 

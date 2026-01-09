@@ -8,6 +8,7 @@ import { useCurrentUser, useLogout } from '../../../src/hooks/useAuth'; // ← y
 const ProfileScreen = () => {
   const { user } = useCurrentUser();
   const logoutMutation = useLogout();
+  console.log("the user is " , user)
 
   const handleLogout = () => {
     Alert.alert(

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGetClassroomPupils } from '../../../../../../src/hooks/useClassroom';
+import { usePupilStore } from '../../../../../../src/stores/PupilStore';
 
 function MainScreen() {
   const insets = useSafeAreaInsets();
@@ -21,8 +22,8 @@ function MainScreen() {
   const { id } = useLocalSearchParams();
 
   const { data: pupilsEnrolled, isLoading } = useGetClassroomPupils(id);
+  const { setSelectedStudent } = usePupilStore()
 
-  // ✅ Loading state (early return)
   if (isLoading) {
     return (
       <View style={styles.loading}>
@@ -31,12 +32,17 @@ function MainScreen() {
     );
   }
 
-  // ✅ Always provide an array to FlatList
   const pupils = pupilsEnrolled?.pupils ?? [];
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card} activeOpacity={0.8}
-    onPress={() => console.log(item)}
+    onPress={() => {
+      console.log('the selected user is:', item); // ✅ correct
+      setSelectedStudent(item)
+      router.push(`(teacher)/(tabs)/classes/${id}/points/PointManagement`)
+     
+
+    }}
     >
       {/* Manage Button */}
       <View style={styles.actionContainer}>

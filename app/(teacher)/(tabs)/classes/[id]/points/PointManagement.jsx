@@ -1,18 +1,18 @@
 // app/(teacher)/PointManagementScreen.jsx
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGivePoints, useReducePoints } from '../../../../../../src/hooks/usePoints';
@@ -20,6 +20,7 @@ import { usePupilStore } from '../../../../../../src/stores/PupilStore';
 
 const PointManagementScreen = () => {
   const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const { selectedStudent } = usePupilStore();
   const addMutation = useGivePoints();
@@ -75,7 +76,7 @@ const handleRemovePoints = useCallback(() => {
 );
 }, [pointsInput, reason, selectedStudent, reduceMutation]);
   const handleHistory = () => {
-    router.push('/(teacher)/PointsHistory'); // Adjust if needed
+     router.push(`(teacher)/(tabs)/classes/${id}/points/HistoryScreen`) // Adjust if needed
   };
 
   if (!selectedStudent) {

@@ -7,6 +7,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 const RenderClass = ({ item }) => {
   const router = useRouter();
 
+
   return (
     <TouchableOpacity
       style={styles.classCard}
@@ -62,6 +63,7 @@ const RenderClass = ({ item }) => {
             style={styles.actionButton}
             onPress={(e) => {
               e.stopPropagation();
+              
               router.push(`/(teacher)/classes/${item.id}`);
             }}
           >

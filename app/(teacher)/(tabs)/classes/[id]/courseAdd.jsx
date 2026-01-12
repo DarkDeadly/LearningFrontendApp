@@ -1,5 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,37 +10,42 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCreateCourse } from "../../../../../src/hooks/useCourse";
+
+// Animated components
+const AnimatedView = Animated.createAnimatedComponent(View);
+const AnimatedText = Animated.createAnimatedComponent(Text);
 
 export default function AddCourseScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { id: classroomId } = useLocalSearchParams();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const isDisabled = !title.trim() || !description.trim() || loading;
+  const { mutate, isPending, isSuccess } = useCreateCourse();
 
-  const handleCreateCourse = async () => {
+  const isDisabled = !title.trim() || !description.trim() || isPending;
+
+  const handleCreateCourse = () => {
     if (isDisabled) return;
-
-    try {
-      setLoading(true);
-
-      // API CALL HERE
-      // await createCourse(teacherId, classroomId, title, description);
-
-    } finally {
-      setLoading(false);
-    }
+    mutate({ title, description, classroomId });
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      router.back();
+    }
+  }, [isSuccess, router]);
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* 🌈 Gradient Background */}
       <LinearGradient
         colors={["#EEF2FF", "#F6F7FB", "#FFFFFF"]}
         style={{ flex: 1 }}
@@ -53,13 +59,23 @@ export default function AddCourseScreen() {
             },
           ]}
         >
-          <Text style={styles.title}>إضافة دورة</Text>
-          <Text style={styles.subtitle}>
+          <AnimatedText
+            entering={FadeInUp.delay(200).duration(500)}
+            style={styles.title}
+          >
+            إضافة دورة
+          </AnimatedText>
+          <AnimatedText
+            entering={FadeInUp.delay(300).duration(500)}
+            style={styles.subtitle}
+          >
             أنشئ دورة جديدة لقسمك الدراسي
-          </Text>
+          </AnimatedText>
 
-          <View style={styles.card}>
-            {/* عنوان الدورة */}
+          <AnimatedView
+            entering={FadeInUp.delay(400).duration(500)}
+            style={styles.card}
+          >
             <Text style={styles.label}>عنوان الدورة</Text>
             <TextInput
               value={title}
@@ -70,7 +86,6 @@ export default function AddCourseScreen() {
               textAlign="right"
             />
 
-            {/* وصف الدورة */}
             <Text style={styles.label}>الوصف</Text>
             <TextInput
               value={description}
@@ -83,7 +98,6 @@ export default function AddCourseScreen() {
               textAlign="right"
             />
 
-            {/* زر الإضافة مع Gradient */}
             <TouchableOpacity
               activeOpacity={0.85}
               disabled={isDisabled}
@@ -101,18 +115,18 @@ export default function AddCourseScreen() {
                 style={styles.gradientButton}
               >
                 <Text style={styles.buttonText}>
-                  {loading ? "جارٍ الإنشاء..." : "إنشاء الدورة"}
+                  {isPending ? "جارٍ الإنشاء..." : "إنشاء الدورة"}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
-          </View>
+          </AnimatedView>
         </View>
       </LinearGradient>
     </KeyboardAvoidingView>
   );
 }
 
-  const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,

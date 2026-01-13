@@ -24,3 +24,12 @@ export const useGetCourses = (classroomId) => {
         enabled: !!classroomId
     })
 }
+
+export const useGetCourse = (classroomId , courseId) => {
+  return useQuery({
+    queryKey : ['classroom' , classroomId , "courses" , courseId] ,
+    queryFn : () => courseApi.getCourseDetail(classroomId , courseId),
+    staleTime: 7 * 60 * 1000,
+    enabled: !!classroomId && !!courseId
+  })
+}

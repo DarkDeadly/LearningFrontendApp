@@ -4,14 +4,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { memo, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { useGetCourse } from '../../../../../../src/hooks/useCourse';
 import { useClassStore } from '../../../../../../src/stores/classStore';
 import { useCourseStore } from '../../../../../../src/stores/courseStore';
 
@@ -24,12 +25,17 @@ const formatDuration = (seconds) => {
 
 const CourseScreen = () => {
   const { selectedCourse } = useCourseStore();
-  const {selectClass} = useClassStore()
-  const router = useRouter()
+  const { selectClass } = useClassStore();
+  const router = useRouter();
+
+  const { data, isLoading } = useGetCourse(selectClass?._id, selectedCourse?._id);
+
+  // Safely extract info
+  const courseInfo = data?.course || selectedCourse;
+  const materialsList = data?.materials || [];
+
   const player = useAudioPlayer(null, { updateInterval: 1200000 }); // 1s is smooth enough
-
   const status = useAudioPlayerStatus(player);
-
   const [playingId, setPlayingId] = useState(null);
 
   useEffect(() => {
@@ -46,109 +52,99 @@ const CourseScreen = () => {
 
   const playPauseSound = (material) => {
     const { fileUrl, _id } = material;
-
     if (playingId === _id) {
-      if (status.playing) {
-        player.pause();
-      } else {
-        player.play();
-      }
+      status.playing ? player.pause() : player.play();
     } else {
       setPlayingId(_id);
       player.replace({ uri: fileUrl });
-      player.seekTo(0);
       player.play();
     }
   };
 
   const handleAddMaterial = () => {
-
-    console.log('Add new material clicked!' , selectedCourse);
-    router.push(`(teacher)/(tabs)/classes/${selectClass?._id}/${selectedCourse?._id}/MaterialAdd`)
+    router.push(`(teacher)/(tabs)/classes/${selectClass?._id}/${selectedCourse?._id}/MaterialAdd`);
   };
-
-  if (!selectedCourse) {
-    return (
-      <LinearGradient colors={['#1e3a8a', '#3b82f6']} style={styles.container}>
-        <ActivityIndicator size="large" color="#fff" />
-      </LinearGradient>
-    );
-  }
 
   const MaterialItem = memo(({ material }) => {
     const isCurrentlyPlaying = playingId === material._id;
-    const progress =
-      status.isLoaded && status.duration && isCurrentlyPlaying
+    const progress = status.isLoaded && status.duration && isCurrentlyPlaying
         ? (status.currentTime / status.duration) * 100
         : 0;
 
     return (
-      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
-        <TouchableOpacity
-          style={styles.materialItem}
-          onPress={() => playPauseSound(material)}
-        >
+      <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+        <TouchableOpacity style={styles.materialItem} onPress={() => playPauseSound(material)}>
           <View style={styles.playIconContainer}>
-            {isCurrentlyPlaying && status.playing ? (
-              <Ionicons name="pause-circle" size={40} color="#fff" />
-            ) : (
-              <Ionicons name="play-circle" size={40} color="#fff" />
-            )}
+            <Ionicons 
+              name={isCurrentlyPlaying && status.playing ? "pause-circle" : "play-circle"} 
+              size={40} 
+              color="#fff" 
+            />
           </View>
           <View style={styles.materialInfo}>
             <Text style={styles.materialTitle}>{material.title}</Text>
             <Text style={styles.materialDuration}>
-              {formatDuration(material.duration || status.duration || 0)}
+              {isCurrentlyPlaying && status.playing 
+                ? `${formatDuration(status.currentTime / 1000)} / ${formatDuration(material.duration)}` 
+                : formatDuration(material.duration)}
             </Text>
           </View>
         </TouchableOpacity>
-
-        {isCurrentlyPlaying && status.isLoaded && (
+        {isCurrentlyPlaying && (
           <View style={styles.progressBarContainer}>
-            <View style={[styles.progressBar, { width: `${progress}%` }]} />
+            <Animated.View style={[styles.progressBar, { width: `${progress}%` }]} />
           </View>
         )}
       </Animated.View>
     );
   });
 
+  if (isLoading && !courseInfo) {
+    return (
+      <LinearGradient colors={['#1e3a8a', '#3b82f6']} style={styles.container}>
+        <View style={styles.centered}>
+            <ActivityIndicator size="large" color="#fff" />
+        </View>
+      </LinearGradient>
+    );
+  }
+
   return (
-    <LinearGradient colors={['#1e3a8a', '#3b82f6', '#ffffff']} style={styles.container}>
+    <LinearGradient colors={['#1e3a8a', '#3b82f6', '#1e3a8a']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Lovely Header */}
+        
+        {/* Header Section */}
         <Animated.View entering={FadeInUp.duration(600)} style={styles.headerContainer}>
           <View style={styles.headerContent}>
-            <Text style={styles.courseTitle}>{selectedCourse.title}</Text>
+            {/* Added Fallback text to ensure something always renders */}
+            <Text style={styles.courseTitle}>
+                {courseInfo?.title || "Loading Course..."}
+            </Text>
             <Text style={styles.courseDescription}>
-              {selectedCourse.description || 'Discover amazing lessons and materials'}
+              {courseInfo?.description || 'Learn the basics of this course.'}
             </Text>
 
-            {/* Add Material Button */}
-            <TouchableOpacity 
-              style={styles.addButton} 
-              onPress={handleAddMaterial}
-              activeOpacity={0.85}
-            >
+            <TouchableOpacity style={styles.addButton} onPress={handleAddMaterial}>
               <Ionicons name="add-circle" size={24} color="#fff" />
-              <Text style={styles.addButtonText}>محتوى الدرس</Text>
+              <Text style={styles.addButtonText}>إضافة محتوى</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
 
-        {/* Materials List */}
-        <View style={styles.materialsSection}>
+        {/* Materials Section */}
+        {isLoading ? <ActivityIndicator size={"large"} /> : <View style={styles.materialsSection}>
           <Text style={styles.materialsHeader}>
-            محتوى الدرس ({selectedCourse.materialCount || selectedCourse.materials?.length || 0})
+            محتوى الدرس ({materialsList.length})
           </Text>
 
-          {selectedCourse.materials?.map((material) => (
-            <MaterialItem key={material._id} material={material} />
+          {materialsList.map((item) => (
+            <MaterialItem key={item._id} material={item} />
           ))}
 
-          {(!selectedCourse.materials || selectedCourse.materials.length === 0) && (
-            <Text style={styles.emptyText}>No materials yet. Add your first one!</Text>
+          {materialsList.length === 0 && !isLoading && (
+            <Text style={styles.emptyText}>No materials found.</Text>
           )}
-        </View>
+        </View>}
       </ScrollView>
     </LinearGradient>
   );
@@ -156,39 +152,31 @@ const CourseScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  scrollContent: { padding: 20, paddingTop: 60, paddingBottom: 100 }, // Added paddingTop for status bar spacing
 
-  // ── Lovely Header ──
   headerContainer: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // Darker translucent background for better visibility
     borderRadius: 20,
     marginBottom: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  headerContent: {
-    padding: 24,
-    paddingBottom: 28,
-  },
+  headerContent: { padding: 24 },
   courseTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#ffffff',
     marginBottom: 8,
-    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowRadius: 4,
   },
   courseDescription: {
     fontSize: 16,
     color: '#e0e7ff',
     lineHeight: 24,
     marginBottom: 24,
-    opacity: 0.95,
   },
   addButton: {
     flexDirection: 'row',
@@ -196,75 +184,45 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#6366f1',
     paddingVertical: 14,
-    paddingHorizontal: 24,
     borderRadius: 30,
-    shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
     elevation: 5,
   },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 10,
-  },
+  addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600', marginLeft: 10 },
 
-  // ── Materials Section ──
   materialsSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 20,
     padding: 16,
-    marginTop: 8,
   },
   materialsHeader: {
     fontSize: 22,
     fontWeight: '700',
     color: '#fff',
     marginBottom: 16,
-    paddingHorizontal: 4,
   },
   materialItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 16,
     padding: 14,
     marginBottom: 12,
   },
   playIconContainer: { marginRight: 16 },
   materialInfo: { flex: 1 },
-  materialTitle: {
-    fontSize: 17,
-    color: '#fff',
-    fontWeight: '600',
-  },
-  materialDuration: {
-    fontSize: 13,
-    color: '#c7d2fe',
-    marginTop: 4,
-  },
+  materialTitle: { fontSize: 17, color: '#fff', fontWeight: '600' },
+  materialDuration: { fontSize: 13, color: '#c7d2fe', marginTop: 4 },
   progressBarContainer: {
     height: 5,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 3,
-    marginTop: 8,
+    marginTop: -8,
+    marginBottom: 12,
     marginHorizontal: 6,
     overflow: 'hidden',
   },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#a5b4fc',
-    borderRadius: 3,
-  },
-  emptyText: {
-    color: '#c7d2fe',
-    fontSize: 16,
-    textAlign: 'center',
-    paddingVertical: 40,
-    opacity: 0.8,
-  },
+  progressBar: { height: '100%', backgroundColor: '#a5b4fc' },
+  emptyText: { color: '#c7d2fe', fontSize: 16, textAlign: 'center', paddingVertical: 40 },
 });
 
 export default CourseScreen;

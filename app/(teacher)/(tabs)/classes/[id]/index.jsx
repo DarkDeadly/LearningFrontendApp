@@ -29,6 +29,8 @@ const ClassroomContent = () => {
   const {setSelectedCourse} = useCourseStore()
   const {setSelectedClass} = useClassStore()
 
+  console.log(courseContent)
+
 
   if (isLoading) {
     return (

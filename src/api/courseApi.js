@@ -14,6 +14,10 @@ const courseApi = {
     getCourses : async (classroomId) => {
         const response = await apiClient.get(`/classrooms/${classroomId}/courses`)
         return response.data
+    },
+     getCourseDetail : async (classroomId , courseId) => {
+        const response = await apiClient.get(`/classrooms/${classroomId}/courses/${courseId}`)
+        return response.data
     }
 }
 

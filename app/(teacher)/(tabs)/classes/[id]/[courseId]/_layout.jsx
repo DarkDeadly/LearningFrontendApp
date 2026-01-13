@@ -5,8 +5,7 @@ const MaterialLayout = () => {
   return (
     <Stack>
         <Stack.Screen name='index' options={{headerShown : false}} />
-        <Stack.Screen name='MaterialAdd'   
-        options={{
+        <Stack.Screen name='MaterialAdd'   options={{
                   presentation: 'formSheet',
                   animation: Platform.OS === 'ios' ? 'slide_from_bottom' : 'slide_from_bottom',
                   headerShown: true,

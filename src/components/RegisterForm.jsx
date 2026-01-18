@@ -3,9 +3,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import Button from './Button';
 import InputField from './Input';
 
-
-const RegisterForm = ({ formData, errors, onFieldChange, onSubmit, isLoading }) => {
-    const formFields = [
+ const formFields = [
     {
       name: 'fullname',
       placeholder: 'أدخل اسمك الكامل',
@@ -31,6 +29,9 @@ const RegisterForm = ({ formData, errors, onFieldChange, onSubmit, isLoading }) 
       secureTextEntry: true,
     },
   ];
+
+const RegisterForm = ({ formData, errors, onFieldChange, onSubmit, isLoading }) => {
+   
   return (
     <Animated.View entering={FadeInDown.delay(350)} style={styles.form}>
       {formFields.map((field) => (

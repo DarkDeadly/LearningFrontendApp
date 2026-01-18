@@ -1,81 +1,101 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCurrentUser } from '../../../src/hooks/useAuth';
 
-const homeScreen = () => {
 
-    const { user } = useCurrentUser();
-    const router = useRouter();
-    
-      if (!user) return null;
-
-    const cards = [
-    {
-        title : "إدارة الدروس",
-        subtitle : "قم بإنشاء وتحرير دروسك",
-        icon: 'book-outline',
-        color: '#4A90E2',
-        onPress: () => router.push('/classes')
-    },
-    {
-        title : "المكافآت",
-        subtitle : "عرض وإدارة المكافآت",
-        icon : "gift",
-        color: '#4A90E2',
-        onPress: () => router.push('/rewards')
-    },
-    {
-        title : "الرسائل",
-        subtitle : "تواصل مع التلاميذ والزملاء",
-        icon : "chatbubbles",
-        color: '#4A90E2',
-        onPress: () => router.push('/messages')
-    },
-    {
-        title : "إدارة النقاط",
-        subtitle : " عرض وإدارة النقاط",
-        icon : "trophy",
-        color: '#4A90E2',
-         onPress: () => router.push('/profile')
-    }
+const cards = [
+  {
+    id: 'lessons',
+    title: "إدارة الدروس",
+    subtitle: "قم بإنشاء وتحرير دروسك",
+    icon: 'book-outline',
+    color: '#4A90E2',
+    route: '/classes' // Just the string path
+  },
+  {
+    id: 'rewards',
+    title: "المكافآت",
+    subtitle: "عرض وإدارة المكافآت",
+    icon: "gift",
+    color: '#4A90E2',
+    route: '/rewards'
+  },
+  {
+    id: 'messsages',
+    title: "الرسائل",
+    subtitle: "تواصل مع التلاميذ والزملاء",
+    icon: "chatbubbles",
+    color: '#4A90E2',
+    route: '/messages'
+  },
+  {
+    id: 'points',
+    title: "إدارة النقاط",
+    subtitle: " عرض وإدارة النقاط",
+    icon: "trophy",
+    color: '#4A90E2',
+    route: '/profile'
+  }
 ]
-  return (
-   <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header with Avatar */}
-      <LinearGradient colors={['#4A90E2', '#2171BE']} style={styles.header}>
-        <Text style={styles.welcomeText}>مرحباً بعودتك</Text>
 
-        {/* Anime Avatar */}
-        <View style={styles.avatarContainer}>
-          <Image
-            source={require('../../../assets/images/professor.png')} 
-            style={styles.avatar}
-          />
-        </View>
+const homeScreen = () => {
+  const router = useRouter();
+  const { data: user, isLoading, isFetching } = useCurrentUser();
 
-        <Text style={styles.name}>{user.fullname}</Text>
-      </LinearGradient>
-
-      {/* Cards Grid */}
-      <View style={styles.cardsGrid}>
-        {cards.map((card, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.card}
-            onPress={card.onPress}
-            activeOpacity={0.8}
-          >
-            <LinearGradient colors={[card.color, '#1E6BB8']} style={styles.cardGradient}>
-              <Ionicons name={card.icon} size={48} color="#fff" />
-              <Text style={styles.cardTitle}>{card.title}</Text>
-              <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        ))}
+  if (isLoading) {
+    return (
+      <View >
+        <ActivityIndicator size="large" color="#4A90E2" />
       </View>
-    </ScrollView>
+    );
+  }
+
+  if (!user) return null;
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F4F8' }}>
+      {isFetching && !isLoading && (
+        <View style={styles.syncIndicator}>
+          <ActivityIndicator size="small" color="#fff" />
+        </View>
+      )}
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header with Avatar */}
+        <LinearGradient colors={['#4A90E2', '#2171BE']} style={styles.header}>
+          <Text style={styles.welcomeText}>مرحباً بعودتك</Text>
+
+          {/* Anime Avatar */}
+          <View style={styles.avatarContainer}>
+            <Image
+              source={require('../../../assets/images/professor.png')}
+              style={styles.avatar}
+            />
+          </View>
+
+          <Text style={styles.name}>{user.fullname}</Text>
+        </LinearGradient>
+
+        {/* Cards Grid */}
+        <View style={styles.cardsGrid}>
+          {cards.map((card, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.card}
+              onPress={() => router.push(card.route)}
+              activeOpacity={0.8}
+            >
+              <LinearGradient colors={[card.color, '#1E6BB8']} style={styles.cardGradient}>
+                <Ionicons name={card.icon} size={48} color="#fff" />
+                <Text style={styles.cardTitle}>{card.title}</Text>
+                <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   )
 }
 

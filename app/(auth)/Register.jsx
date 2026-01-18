@@ -69,15 +69,11 @@ export default function Register() {
     setErrors({});
 
     try {
-      const result = await registerMutation.mutateAsync({ 
+      await registerMutation.mutateAsync({ 
         fullname: formData.fullname, 
         email: formData.email, 
         password: formData.password 
       });
-      
-      console.log('✅ Registration successful:', result);
-      
-     
       
     } catch (error) {
       console.error('❌ Registration error:', error);

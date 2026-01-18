@@ -3,43 +3,47 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCurrentUser } from '../../../src/hooks/useAuth';
-
-const HomeScreen = () => {
-  const { user } = useCurrentUser();
-  const router = useRouter();
-
-  if (!user) return null;
-
-  const cards = [
+const cards = [
     {
+      id : "course",
       icon: 'book-outline',
       title: 'دروسي',
       subtitle: 'اطلع على صفوفك المسجلة',
       color: '#4A90E2',
-      onPress: () => router.push('/class'), // Change to your route
+      route:'/class',
     },
     {
+      id : "rewards",
       icon: 'gift-outline',
       title: 'المكافآت',
       subtitle: 'تحقق من مكافآتك ونقاطك',
       color: '#4A90E2',
-      onPress: () => router.push('/rewards'),
+      route : '/rewards',
     },
     {
+      id : 'messages',
       icon: 'chatbubble-outline',
       title: 'الرسائل',
       subtitle: 'تواصل مع المعلمين والزملاء',
       color: '#4A90E2',
-      onPress: () => router.push('/messages'),
+      route : '/messages',
     },
     {
+      id : 'profile',
       icon: 'trophy-outline',
       title: 'نقاطي',
       subtitle: 'عرض نقاطك الحالية',
       color: '#4A90E2',
-      onPress: () => router.push('/profile'),
+      route : '/profile',
     },
   ];
+const HomeScreen = () => {
+  const { data : user } = useCurrentUser();
+  const router = useRouter();
+
+  if (!user) return null;
+
+  
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header with Avatar */}
@@ -63,7 +67,7 @@ const HomeScreen = () => {
           <TouchableOpacity
             key={index}
             style={styles.card}
-            onPress={card.onPress}
+            onPress={() => router.replace(route)}
             activeOpacity={0.8}
           >
             <LinearGradient colors={[card.color, '#1E6BB8']} style={styles.cardGradient}>

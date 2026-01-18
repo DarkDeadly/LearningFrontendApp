@@ -4,7 +4,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 import { useCurrentUser, useLogout } from '../../../src/hooks/useAuth'; // ← your auth hooks
 
 const ProfileScreen = () => {
-  const { user } = useCurrentUser();
+  const { data: user } = useCurrentUser();
   const logoutMutation = useLogout();
 
   const handleLogout = () => {

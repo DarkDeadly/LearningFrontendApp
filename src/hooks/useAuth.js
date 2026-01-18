@@ -3,7 +3,6 @@
 // ==========================================
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { authAPI } from "../api/authApi";
 import { storage } from "../util/storage";
 export const useLogin = () => {
@@ -45,7 +44,6 @@ export const useRegister = () => {
 
     onSuccess: async (data) => {
       console.log('✅ Registration successful:', data);
-
       // Save token and user data
       await Promise.all([
         storage.saveToken(data.accessToken),
@@ -53,8 +51,8 @@ export const useRegister = () => {
       ]);
       // This forces useCurrentUser to see the new user immediately
       queryClient.setQueryData(['profile'], data.user);
-
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+
     },
 
     onError: (error) => {
@@ -69,31 +67,22 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      await authAPI.logout();
-    },
+    mutationFn: () => authAPI.logout(),
+    onSuccess: async () => {
+      // 1. Clear physical storage first so 'initialData' can't find it
+      await storage.clearAll();
 
-    onSuccess: () => {
-      console.log('✅ Logged out successfully');
-
-      // CRITICAL: Force React Query to forget the user immediately
+      // 2. Set the user to null in the cache
       queryClient.setQueryData(['profile'], null);
 
-      // Also clear everything else
-      storage.clearAll();
-      queryClient.clear();
-    },
-    onError: (error) => {
-      console.log('❌ Logout error:', error);
+      // 3. Remove the query entirely to stop observers
+      queryClient.removeQueries({ queryKey: ['profile'] });
 
-      // Same for error case
-      queryClient.setQueryData(['profile'], null);
-      storage.clearAll();
+      // 4. Optional: clear the rest
       queryClient.clear();
     },
   });
 };
-
 // ==========================================
 // 🚪🚪 LOGOUT ALL DEVICES MUTATION
 // ==========================================
@@ -146,38 +135,17 @@ export const useProfile = () => {
 // ==========================================
 // 🎯 CUSTOM HOOK - Get Current User
 // ==========================================
-export const useCurrentUser = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const queryClient = useQueryClient();
-
-  // Initial load: seed cache from storage
-  useEffect(() => {
-    const init = async () => {
-      const savedUser = await storage.getUserData();
-      if (savedUser) {
-        queryClient.setQueryData(['profile'], savedUser);
-      }
-      setIsLoading(false);
-    };
-    init();
-  }, []);
-
-  const { data: user, isFetching } = useQuery({
-    queryKey: ['profile'],
-    queryFn: async () => {
-      const response = await authAPI.getProfile();
-      await storage.saveUserData(response.user);
-      return response.user;
+export const getStoredUser = async () => await storage.getUserData();
+export const useCurrentUser = (preLoadedData) => {
+  return useQuery({
+    queryKey : ['profile'],
+    queryFn : async () => {
+      const response = await authAPI.getProfile()
+      await storage.saveUserData(response.user)
+      return response.user
     },
+    initialData: preLoadedData, 
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
-
-  return {
-    user: user ?? null,
-    isLoading,
-    isFetching
-  };
+  })
 };
 

@@ -27,27 +27,30 @@ function Root() {
   const isLoggedIn = !!user;
   const role = user?.role;
 
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {/* The "Why": Because 'user' is immediately available from initialData, 
-        there is NO "Bounce" back to Login for already logged-in users.
-      */}
-      <Stack.Screen 
-        name="(auth)" 
-        redirect={isLoggedIn} // Native Expo Router redirection logic
-      />
-      
-      <Stack.Screen 
-        name="(pupil)" 
-        redirect={!isLoggedIn || role !== 'pupil'} 
-      />
+ return (
+  <Stack screenOptions={{ headerShown: false }}>
+    {/* 1. Add index here and treat it like (auth) */}
+    <Stack.Screen 
+      name="index" 
+      redirect={isLoggedIn} // If logged in, don't show the landing page!
+    />
 
-      <Stack.Screen 
-        name="(teacher)" 
-        redirect={!isLoggedIn || role !== 'teacher'} 
-      />
-    </Stack>
-  );
+    <Stack.Screen 
+      name="(auth)" 
+      redirect={isLoggedIn} 
+    />
+    
+    <Stack.Screen 
+      name="(pupil)" 
+      redirect={!isLoggedIn || role !== 'pupil'} 
+    />
+
+    <Stack.Screen 
+      name="(teacher)" 
+      redirect={!isLoggedIn || role !== 'teacher'} 
+    />
+  </Stack>
+);
 }
 
 export default function RootLayout() {

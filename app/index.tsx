@@ -1,6 +1,7 @@
 // app/index.js
+import { useCurrentUser } from "@/src/hooks/useAuth";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Dimensions, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInLeft, FadeInUp } from "react-native-reanimated";
@@ -10,6 +11,21 @@ const { width, height } = Dimensions.get('window');
 
 export default function Index() {
   const router = useRouter();
+const { data: user, isLoading } = useCurrentUser();
+
+  // 🚀 SMOOTH AUTO-JUMP
+  // If the user is logged in, this screen won't even render. 
+  // It instantly sends them to the dashboard.
+if (user && !isLoading) {
+  // We use "as any" to bypass the strict TypeScript check if the route 
+  // generator hasn't caught up to your folder changes yet.
+  const destination = user.role === 'teacher' 
+    ? "/(teacher)/(tabs)"  // Points to the tabs groaniup inside teacher
+    : "/(pupil)/(tabs)";    // Points to the tabs group inside pupil
+
+  return <Redirect href={destination as any} />;
+}
+  
 
   return (
     <View style={styles.container}>

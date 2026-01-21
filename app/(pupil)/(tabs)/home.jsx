@@ -67,7 +67,7 @@ const HomeScreen = () => {
           <TouchableOpacity
             key={index}
             style={styles.card}
-            onPress={() => router.replace(route)}
+            onPress={() => router.replace(card.route)}
             activeOpacity={0.8}
           >
             <LinearGradient colors={[card.color, '#1E6BB8']} style={styles.cardGradient}>

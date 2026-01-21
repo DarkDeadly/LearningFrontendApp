@@ -1,15 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useProfile } from '../../hooks/useAuth';
 import { useJoinClassroom } from '../../hooks/useClassroom';
 import { validateJoinClassroom } from '../../util/classValidation';
 
 const RenderClass = ({ item }) => {
-    console.log(item)
+
     const [pin, setPin] = useState("")
     const [Error, setError] = useState({})
     const { mutate: joinClassroom, isPending: Loading, error: serverError } = useJoinClassroom()
+    const { data : user } = useProfile();
+    const router = useRouter()
 
     const handleJoinClassroom = (classId, pinCode) => {
         const validationErrors = validateJoinClassroom(classId, pinCode);
@@ -24,14 +28,14 @@ const RenderClass = ({ item }) => {
         joinClassroom({
             classroomId: classId,
             pin: pinCode,
-        });
+        },{onSuccess : () => setPin('')});
 
     };
     return (
         <TouchableOpacity
             style={styles.classCard}
             activeOpacity={0.9}
-            onPress={() => router.push(`/(teacher)/classroom/${item.id}`)}
+           
         >
             <LinearGradient
                 colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
@@ -89,7 +93,20 @@ const RenderClass = ({ item }) => {
 
                 {/* Actions Row */}
                 <View style={styles.actionsRow}>
-                    <TextInput
+                   {
+                    user?.classroomId === item._id ?   <TouchableOpacity
+                        style={[
+                            styles.classText,
+                            Loading && { opacity: 0.6 }
+                        ]}
+                        onPress={() =>router.push(`(pupil)/(tabs)/class/${item._id}`)}
+                        disabled={Loading}
+                    >
+                        <Text style={styles.actionText}>
+                            تفحص القسم
+                        </Text>
+                    </TouchableOpacity> : <>
+                     <TextInput
                         style={styles.pinInput}
                         placeholder="رمز الفصل"
                         placeholderTextColor="#999"
@@ -97,6 +114,7 @@ const RenderClass = ({ item }) => {
                         value={pin}
                         onChangeText={setPin}
                         maxLength={4}
+                        secureTextEntry={true}
                     />
 
                     <TouchableOpacity
@@ -111,6 +129,10 @@ const RenderClass = ({ item }) => {
                             {Loading ? 'جاري الانضمام...' : 'الانضمام إلى الفصل'}
                         </Text>
                     </TouchableOpacity>
+                    </>
+
+                   }
+                   
                 </View>
             </View>
         </TouchableOpacity>
@@ -211,11 +233,19 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 20,
     },
+    classText : {
+        backgroundColor: '#F0E7FF',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 20,
+        width : "100%"
+    },
     actionText: {
         color: '#8B5CF6',
         fontSize: 14,
         fontWeight: '600',
         marginLeft: 6,
+        textAlign:'center'
     },
     pinInput: {
         flex: 1,

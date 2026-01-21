@@ -75,6 +75,6 @@ export const useClassroomDetails = (classroomId) => {
     queryFn : () => classroomApi.getClassroomDetails(classroomId),
     staleTime: 7 * 60 * 1000,
     enabled: !!classroomId, // optional but recommended,
-    select : (data) => data.classroom || []
+    select : (data) => data.classroom || {}
     })
 }

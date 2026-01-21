@@ -1,12 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native'
-import RenderClass from '../../../src/components/classStudent/RenderClass'
-import EmptyState from '../../../src/components/classTeacher/EmptyState'
-import { useGetAllClassrooms } from '../../../src/hooks/useClassroom'
+import RenderClass from '../../../../src/components/classStudent/RenderClass'
+import EmptyState from '../../../../src/components/classTeacher/EmptyState'
+import { useGetAllClassrooms } from '../../../../src/hooks/useClassroom'
 
 const ClassScreen = () => {
   const {data , isLoading} = useGetAllClassrooms()
-  console.log(data)
+  console.log("the data is the following : " , data)
   return (
     <View style={styles.container}>
      <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.header}>
@@ -25,7 +25,7 @@ const ClassScreen = () => {
               <FlatList
                 data={data}
                 renderItem={({ item }) => <RenderClass item={item} />}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
               />

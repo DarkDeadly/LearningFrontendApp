@@ -1,12 +1,9 @@
-// src/components/classTeacher/RenderClass.jsx
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const RenderClass = ({ item }) => {
   const router = useRouter();
-
 
   return (
     <TouchableOpacity
@@ -14,15 +11,9 @@ const RenderClass = ({ item }) => {
       activeOpacity={0.9}
       onPress={() => router.push(`/(teacher)/classes/${item.id}`)}
     >
-      <LinearGradient
-        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
-        style={StyleSheet.absoluteFill}
-      />
-
       <View style={styles.cardContent}>
-        {/* Header Row */}
+        {/* Header Row: Status on Left, Name on Right (RTL) */}
         <View style={styles.headerRow}>
-          <Text style={styles.className}>{item?.name}</Text>
           <View style={[
             styles.statusBadge, 
             item.isActive ? styles.active : styles.inactive
@@ -34,41 +25,44 @@ const RenderClass = ({ item }) => {
               {item.isActive ? 'نشط' : 'غير نشط'}
             </Text>
           </View>
+          
+          <Text style={styles.className} >
+            {item?.name}
+          </Text>
         </View>
 
-        {/* Description (if exists) */}
+        {/* Description */}
         {item.description && (
           <Text style={styles.description} numberOfLines={2}>
             {item.description}
           </Text>
         )}
 
-        {/* Stats Row */}
+        {/* Stats Row: Aligned to Right */}
         <View style={styles.statsRow}>
           <View style={styles.stat}>
-            <Ionicons name="calendar-outline" size={18} color="#666" />
             <Text style={styles.statText}>
-              {new Date(item.createdAt).toLocaleDateString('ar-SA', {
+              {new Date(item.createdAt).toLocaleDateString('ar-TN', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric'
               })}
             </Text>
+            <Ionicons name="calendar-outline" size={16} color="#94A3B8" style={styles.statIcon} />
           </View>
         </View>
 
         {/* Actions Row */}
         <View style={styles.actionsRow}>
           <TouchableOpacity
+            activeOpacity={0.7}
             style={styles.actionButton}
             onPress={(e) => {
               e.stopPropagation();
-              
               router.push(`/(teacher)/classes/${item.id}`);
             }}
           >
-            <Ionicons name="settings" size={20} color="#8B5CF6" />
-            <Text style={styles.actionText}> ادارة الدروس و التلاميذ </Text>
+            <Text style={styles.actionText}>إدارة الفصل التلاميذ</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -80,15 +74,16 @@ export default RenderClass;
 
 const styles = StyleSheet.create({
   classCard: {
-    marginTop : 20,
+    marginVertical: 20,
     borderRadius: 24,
-    overflow: 'hidden',
     backgroundColor: '#fff',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9', // Very subtle border for definition
+    elevation: 4,
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
   },
   cardContent: {
     padding: 20,
@@ -97,42 +92,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   className: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1E293B',
+    textAlign: 'right',
     flex: 1,
-    textAlign: 'center',
+    marginLeft: 12,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   active: {
-    backgroundColor: '#D4EDDA',
+    backgroundColor: '#F0FDF4',
   },
   inactive: {
-    backgroundColor: '#F8D7DA',
+    backgroundColor: '#FEF2F2',
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 11,
+    fontWeight: '700',
   },
   activeText: {
-    color: '#155724',
+    color: '#16A34A',
   },
   inactiveText: {
-    color: '#721C24',
+    color: '#DC2626',
   },
   description: {
-    fontSize: 15,
-    color: '#666',
+    fontSize: 14,
+    color: '#64748B',
     textAlign: 'right',
     marginBottom: 16,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   statsRow: {
     flexDirection: 'row',
@@ -142,33 +138,39 @@ const styles = StyleSheet.create({
   stat: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 24,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  statIcon: {
+    marginLeft: 6,
   },
   statText: {
-    fontSize: 14,
-    color: '#777',
-    marginLeft: 8,
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '500',
   },
   actionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 12,
-    gap: 12, // Add gap instead of marginLeft
+    marginTop: 4,
   },
   actionButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
-    justifyContent:"center",
-    backgroundColor: '#F0E7FF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    flex: 1
+    justifyContent: 'center',
+    backgroundColor: '#F5F3FF',
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EDE9FE',
+  },
+  actionIcon: {
+    marginRight: 0,
+    marginLeft: 4,
   },
   actionText: {
     color: '#8B5CF6',
     fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: '700',
   },
 });

@@ -1,141 +1,104 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useProfile } from '../../hooks/useAuth';
 import { useJoinClassroom } from '../../hooks/useClassroom';
 import { validateJoinClassroom } from '../../util/classValidation';
 
 const RenderClass = ({ item }) => {
+    const [pin, setPin] = useState("");
+    const [error, setError] = useState(null);
+    const { mutate: joinClassroom, isPending: Loading, error: serverError } = useJoinClassroom();
+    const { data: user } = useProfile();
+    const router = useRouter();
 
-    const [pin, setPin] = useState("")
-    const [Error, setError] = useState({})
-    const { mutate: joinClassroom, isPending: Loading, error: serverError } = useJoinClassroom()
-    const { data : user } = useProfile();
-    const router = useRouter()
+    const isJoined = user?.classroomId === item._id;
 
-    const handleJoinClassroom = (classId, pinCode) => {
-        const validationErrors = validateJoinClassroom(classId, pinCode);
-
+    const handleJoin = () => {
+        const validationErrors = validateJoinClassroom(item._id, pin);
         if (Object.keys(validationErrors).length > 0) {
-            setError(validationErrors);
+            setError("الرجاء إدخال رمز صحيح");
             return;
         }
-
-        setError({});
-
-        joinClassroom({
-            classroomId: classId,
-            pin: pinCode,
-        },{onSuccess : () => setPin('')});
-
+        setError(null);
+        joinClassroom({ classroomId: item._id, pin }, { 
+            onSuccess: () => setPin('') 
+        });
     };
+
     return (
-        <TouchableOpacity
-            style={styles.classCard}
-            activeOpacity={0.9}
-           
-        >
-            <LinearGradient
-                colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
-                style={StyleSheet.absoluteFill}
-            />
-
+        <View style={styles.classCard}>
             <View style={styles.cardContent}>
-                {/* Header Row */}
+                {/* Header: Name and Status */}
                 <View style={styles.headerRow}>
+                    <View style={[styles.statusBadge, item.isActive ? styles.active : styles.inactive]}>
+                        <Text style={[styles.statusText, item.isActive ? styles.activeText : styles.inactiveText]}>
+                            {item.isActive ? 'نشط' : 'مغلق'}
+                        </Text>
+                    </View>
                     <Text style={styles.className}>{item.name}</Text>
-                    <View style={[
-                        styles.statusBadge,
-                        item.isActive ? styles.active : styles.inactive
-                    ]}>
-                        <Text style={[
-                            styles.statusText,
-                            item.isActive ? styles.activeText : styles.inactiveText
-                        ]}>
-                            {item.isActive ? 'نشط' : 'غير نشط'}
+                </View>
+
+                {/* Teacher & Date Info */}
+                <View style={styles.infoRow}>
+                    <View style={styles.infoItem}>
+                        <Text style={styles.infoText}>{item?.teacherId?.fullname}</Text>
+                        <Ionicons name="person-circle-outline" size={16} color="#8B5CF6" />
+                    </View>
+                    <View style={styles.infoItem}>
+                        <Text style={styles.infoText}>
+                            {new Date(item.createdAt).toLocaleDateString('ar-TN')}
                         </Text>
+                        <Ionicons name="calendar-outline" size={16} color="#94A3B8" />
                     </View>
                 </View>
 
-                {/* Description (if exists) */}
                 {item.description && (
-                    <Text style={styles.description} numberOfLines={2}>
-                        {item.description}
-                    </Text>
+                    <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
                 )}
 
-                {/* Stats Row */}
-                {serverError && (
+                {(error || serverError) && (
                     <Text style={styles.errorText}>
-                        {serverError.response?.data?.message || "حدث خطأ أثناء الانضمام"}
+                        {error || serverError?.response?.data?.message || "خطأ في الرمز"}
                     </Text>
                 )}
-                <View style={styles.statsRow}>
-                    <View style={styles.stat}>
-                        <Ionicons name="people-outline" size={18} color="#666" />
-                        <Text style={styles.statText}>
-                            {item.teacherId.fullname}
-                        </Text>
-                    </View>
-                    <View style={styles.stat}>
-                        <Ionicons name="calendar-outline" size={18} color="#666" />
-                        <Text style={styles.statText}>
-                            {new Date(item.createdAt).toLocaleDateString('ar-SA', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                            })}
-                        </Text>
-                    </View>
-                </View>
 
-                {/* Actions Row */}
-                <View style={styles.actionsRow}>
-                   {
-                    user?.classroomId === item._id ?   <TouchableOpacity
-                        style={[
-                            styles.classText,
-                            Loading && { opacity: 0.6 }
-                        ]}
-                        onPress={() =>router.push(`(pupil)/(tabs)/class/${item._id}`)}
-                        disabled={Loading}
-                    >
-                        <Text style={styles.actionText}>
-                            تفحص القسم
-                        </Text>
-                    </TouchableOpacity> : <>
-                     <TextInput
-                        style={styles.pinInput}
-                        placeholder="رمز الفصل"
-                        placeholderTextColor="#999"
-                        keyboardType="number-pad"
-                        value={pin}
-                        onChangeText={setPin}
-                        maxLength={4}
-                        secureTextEntry={true}
-                    />
-
-                    <TouchableOpacity
-                        style={[
-                            styles.actionButton,
-                            Loading && { opacity: 0.6 }
-                        ]}
-                        onPress={() => handleJoinClassroom(item._id, pin)}
-                        disabled={Loading}
-                    >
-                        <Text style={styles.actionText}>
-                            {Loading ? 'جاري الانضمام...' : 'الانضمام إلى الفصل'}
-                        </Text>
-                    </TouchableOpacity>
-                    </>
-
-                   }
-                   
+                {/* Conditional Action Area */}
+                <View style={styles.actionsContainer}>
+                    {isJoined ? (
+                        <TouchableOpacity 
+                            style={styles.joinedButton}
+                            onPress={() => router.push(`(pupil)/(tabs)/class/${item._id}`)}
+                        >
+                            <Text style={styles.joinedButtonText}>دخول القسم</Text>
+                            <Ionicons name="enter-outline" size={20} color="#fff" />
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={styles.joinRow}>
+                            <TouchableOpacity 
+                                style={[styles.joinButton, Loading && { opacity: 0.7 }]}
+                                onPress={handleJoin}
+                                disabled={Loading || pin.length < 4}
+                            >
+                                <Text style={styles.joinButtonText}>{Loading ? '...' : 'انضمام'}</Text>
+                            </TouchableOpacity>
+                            <TextInput
+                                style={[styles.pinInput, error && styles.inputError]}
+                                placeholder="رمز PIN"
+                                placeholderTextColor="#CBD5E1"
+                                keyboardType="number-pad"
+                                value={pin}
+                                onChangeText={setPin}
+                                maxLength={4}
+                                secureTextEntry
+                                textAlign="center"
+                            />
+                        </View>
+                    )}
                 </View>
             </View>
-        </TouchableOpacity>
+        </View>
     );
 };
 
@@ -143,119 +106,61 @@ export default RenderClass;
 
 const styles = StyleSheet.create({
     classCard: {
-        marginTop: 20,
-        borderRadius: 24,
-        overflow: 'hidden',
         backgroundColor: '#fff',
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
+        borderRadius: 24,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+        ...Platform.select({
+            ios: { shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 12 },
+            android: { elevation: 4 }
+        })
     },
-    errorText: {
-        color: '#DC2626',
-        fontSize: 12,
-        marginBottom: 6,
-        textAlign: 'right',
-    },
-    cardContent: {
-        padding: 20,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    className: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#333',
-        flex: 1,
-        textAlign: 'center',
-    },
-    statusBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-    },
-    active: {
-        backgroundColor: '#D4EDDA',
-    },
-    inactive: {
-        backgroundColor: '#F8D7DA',
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    activeText: {
-        color: '#155724',
-    },
-    inactiveText: {
-        color: '#721C24',
-    },
-    description: {
-        fontSize: 15,
-        color: '#666',
-        textAlign: 'right',
-        marginBottom: 16,
-        lineHeight: 22,
-    },
-    statsRow: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginBottom: 16,
-    },
-    stat: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginLeft: 24,
-    },
-    statText: {
-        fontSize: 14,
-        color: '#777',
-        marginLeft: 8,
-    },
-    actionsRow: {
-        flexDirection: 'row-reverse',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: 12,
-        gap: 10,
-    },
-    actionButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F0E7FF',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-    },
-    classText : {
-        backgroundColor: '#F0E7FF',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-        width : "100%"
-    },
-    actionText: {
-        color: '#8B5CF6',
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 6,
-        textAlign:'center'
-    },
+    cardContent: { padding: 20 },
+    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+    className: { fontSize: 18, fontWeight: '800', color: '#1E293B', flex: 1, textAlign: 'right', marginRight: 10 },
+    statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+    active: { backgroundColor: '#F0FDF4' },
+    inactive: { backgroundColor: '#FEF2F2' },
+    statusText: { fontSize: 11, fontWeight: '700' },
+    activeText: { color: '#16A34A' },
+    inactiveText: { color: '#DC2626' },
+    infoRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 15, marginBottom: 12 },
+    infoItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    infoText: { fontSize: 13, color: '#64748B', fontWeight: '500' },
+    description: { fontSize: 14, color: '#64748B', textAlign: 'right', marginBottom: 20, lineHeight: 20 },
+    actionsContainer: { marginTop: 5 },
+    joinRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
     pinInput: {
         flex: 1,
-        borderWidth: 1,
-        borderColor: '#DDD',
-        borderRadius: 20,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        fontSize: 14,
-        color: '#333',
-        textAlign: 'center',
-    }
+        height: 48,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: '#E2E8F0',
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1E293B'
+    },
+    inputError: { borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' },
+    joinButton: {
+        backgroundColor: '#8B5CF6',
+        paddingHorizontal: 25,
+        height: 48,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    joinButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+    joinedButton: {
+        backgroundColor: '#6D28D9',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 48,
+        borderRadius: 12,
+        gap: 8
+    },
+    joinedButtonText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+    errorText: { color: '#DC2626', fontSize: 12, textAlign: 'right', marginBottom: 8, fontWeight: '600' }
 });

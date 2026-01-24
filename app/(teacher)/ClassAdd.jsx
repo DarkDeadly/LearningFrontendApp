@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -6,12 +7,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import InputField from "../../src/components/Input";
 import { useCreateClassroom } from '../../src/hooks/useClassroom';
 import { validateCreateClassroom } from "../../src/util/classValidation";
@@ -22,28 +26,13 @@ const ClassAddModal = () => {
   const router = useRouter();
   const mutation = useCreateClassroom();
 
-  const formFields = [
-    {
-      name: 'name',
-      placeholder: "مثال: رياضيات الصف الخامس",
-      icon: 'book-outline',
-    },
-    {
-      name: 'pin',
-      placeholder: '1234',
-      icon: 'lock-closed-outline',
-      keyboardType: 'numeric',
-      maxLength: 4,
-      secureTextEntry: true,
-    },
-  ];
-
   const handleFieldChange = useCallback((field, value) => {
     let processedValue = value;
     if (field === 'pin') {
       processedValue = value.replace(/[^0-9]/g, '').slice(0, 4);
     }
     setFormData(prev => ({ ...prev, [field]: processedValue }));
+    
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -75,75 +64,141 @@ const ClassAddModal = () => {
   const isFormValid = formData.name.trim().length > 0 && formData.pin.length === 4;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.headerBackground}>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="close-outline" size={28} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>إنشاء فصل جديد</Text>
+            <View style={styles.spacer} />
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={styles.flexOne}
       >
-        <ScrollView contentContainerStyle={styles.content}>
-          {/* Header */}
-          <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.header}>
-            <Text style={styles.title}>إنشاء فصل جديد</Text>
-            <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-              <Text style={styles.closeText}>✕</Text>
-            </TouchableOpacity>
-          </LinearGradient>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Animated.View entering={FadeInDown.duration(600)} style={styles.formContainer}>
+            <Text style={styles.sectionLabel}>المعلومات الأساسية</Text>
+            <InputField
+              placeholder="مثال: رياضيات الصف الخامس"
+              value={formData.name}
+              onChangeText={(val) => handleFieldChange('name', val)}
+              error={errors.name}
+              icon="book-outline"
+              variant="light"
+            />
 
-          {/* Form */}
-          <View style={styles.form}>
-            {formFields.map((field) => (
+            <View style={styles.pinSection}>
+              <Text style={styles.sectionLabel}>رمز الدخول (PIN)</Text>
+              <Text style={styles.sectionDescription}>
+                سيستخدم الطلاب هذا الرمز المكون من 4 أرقام للدخول إلى هذا الفصل.
+              </Text>
               <InputField
-                key={field.name}
-                placeholder={field.placeholder}
-                value={formData[field.name]}
-                onChangeText={(value) => handleFieldChange(field.name, value)}
-                error={errors[field.name]}
-                icon={field.icon}
-                keyboardType={field.keyboardType}
-                maxLength={field.maxLength}
-                secureTextEntry={field.secureTextEntry}
-                variant='light'
+                placeholder="1 2 3 4"
+                value={formData.pin}
+                onChangeText={(val) => handleFieldChange('pin', val)}
+                error={errors.pin}
+                icon="lock-closed-outline"
+                keyboardType="numeric"
+                maxLength={4}
+                secureTextEntry={true}
+                variant="light"
               />
-            ))}
+            </View>
 
             <TouchableOpacity
-              style={[styles.button, (!isFormValid || mutation.isPending) && styles.disabled]}
+              activeOpacity={0.8}
+              style={[styles.mainButton, (!isFormValid || mutation.isPending) && styles.disabledButton]}
               onPress={handleAddition}
               disabled={!isFormValid || mutation.isPending}
             >
-              <Text style={styles.buttonText}>
-                {mutation.isPending ? 'جاري الإنشاء...' : 'إنشاء الفصل'}
-              </Text>
+              <LinearGradient
+                colors={isFormValid ? ['#8B5CF6', '#6D28D9'] : ['#CBD5E1', '#94A3B8']}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>
+                  {mutation.isPending ? 'جاري الإنشاء...' : 'تأكيد إنشاء الفصل'}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  content: { flexGrow: 1 },
+  flexOne: { flex: 1 },
+  headerBackground: {
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
   header: {
-    padding: 20,
-    paddingTop: 10,
+    height: 60,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  closeBtn: { padding: 10 },
-  closeText: { color: '#fff', fontSize: 28 },
-  form: { padding: 24, paddingTop: 30 },
-  button: {
-    backgroundColor: '#8B5CF6',
-    padding: 18,
-    borderRadius: 16,
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  spacer: { width: 40 },
+  scrollContent: { padding: 24 },
+  formContainer: { marginTop: 10 },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+    textAlign: 'right',
+    marginBottom: 8,
     marginTop: 20,
   },
-  disabled: { backgroundColor: '#aaa', opacity: 0.7 },
+  sectionDescription: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'right',
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  pinSection: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  mainButton: {
+    marginTop: 40,
+    height: 60,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  buttonGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  disabledButton: { opacity: 0.7 },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
 

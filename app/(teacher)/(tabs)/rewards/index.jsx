@@ -44,7 +44,7 @@ const ClassCard = ({ item, index }) => {
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       entering={FadeInDown.delay(index * 100).springify().damping(15)}
       layout={LinearTransition.springify()}
     >
@@ -61,9 +61,9 @@ const ClassCard = ({ item, index }) => {
             style={styles.gradient}
           >
             <View style={styles.cardInfo}>
-              <Text style={styles.classLabel}>الفصل الدراسي</Text>
+              <Text style={styles.classLabel}>القسم الدراسي</Text>
               <Text style={styles.className}>{item.name}</Text>
-              
+
               <View style={styles.footer}>
                 <View style={[styles.dot, { backgroundColor: item.isActive ? '#00d1b2' : '#ff3860' }]} />
                 <Text style={styles.dateText}>
@@ -71,8 +71,8 @@ const ClassCard = ({ item, index }) => {
                 </Text>
               </View>
             </View>
-            
-           
+
+
           </LinearGradient>
         </Animated.View>
       </Pressable>
@@ -82,28 +82,28 @@ const ClassCard = ({ item, index }) => {
 
 export default function ClassSelection() {
   const insets = useSafeAreaInsets();
-  const {data : classrooms , isLoading } = useGetMyClassroom()
+  const { data: classrooms, isLoading } = useGetMyClassroom()
 
   if (isLoading) {
     return (
       <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color="#00d1b2" />
-        <Text style={[styles.dateText, { marginTop: 10 }]}>جاري تحميل الفصول...</Text>
+        <Text style={[styles.dateText, { marginTop: 10 }]}>جاري تحميل الاقسام...</Text>
       </View>
     );
   }
 
 
   return (
-    <View style={[styles.container, { 
-      paddingTop: insets.top, 
+    <View style={[styles.container, {
+      paddingTop: insets.top,
       paddingBottom: insets.bottom,
       paddingLeft: insets.left,
-      paddingRight: insets.right 
+      paddingRight: insets.right
     }]}>
       <View style={styles.header}>
         <Text style={styles.title}>لوحة التحكم</Text>
-        <Text style={styles.subtitle}>اختر فصلاً دراسياً لإنشاء المكافآت</Text>
+        <Text style={styles.subtitle}>اختر قسما دراسياً لإنشاء المكافآت</Text>
       </View>
 
       <FlatList
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   center: {
-    flexDirection : 'column',
-    alignItems : "center",
-    justifyContent : "center"
+    flexDirection: 'column',
+    alignItems: "center",
+    justifyContent: "center"
   }
 });

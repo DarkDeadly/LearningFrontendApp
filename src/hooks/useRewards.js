@@ -40,11 +40,12 @@ export const usePurchaseReward = () => {
     onSuccess: () => {
       // 1. Refresh available rewards list
       queryClient.invalidateQueries(['rewards']);
-      
-      // 2. Portfolio Tip: Also refresh the user's profile/points 
-      // so their "Current Points" update immediately on the screen.
-      queryClient.invalidateQueries(['user', 'profile']); 
-      
+
+      // 2. Refresh the user's profile/points so their "Current Points" 
+      // update immediately on the screen.
+      // FIX: Changed from ['user', 'profile'] to ['profile'] to match actual query key
+      queryClient.invalidateQueries(['profile']);
+
       console.log("Purchase successful and cache invalidated");
     },
     onError: (error) => {
@@ -57,13 +58,13 @@ export const useGetPupilPurchaseHistory = (classroomId, pupilId) => {
   return useQuery({
     // Unique key for caching: includes IDs to ensure data doesn't mix between students
     queryKey: ['pupil-history', classroomId, pupilId],
-    
+
     // The API call we just defined
     queryFn: () => RewardsApi.pupilHistory(classroomId, pupilId),
-    
+
     // Safety check: Don't run the query if IDs aren't provided yet
     enabled: !!classroomId && !!pupilId,
-    
+
     // Senior Tip: Stale time keeps the data fresh but prevents 
     // unnecessary re-fetches when switching tabs quickly.
     staleTime: 1000 * 60 * 5, // 5 minutes

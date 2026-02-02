@@ -15,7 +15,7 @@ const RenderClass = ({ item }) => {
         {/* Header Row: Status on Left, Name on Right (RTL) */}
         <View style={styles.headerRow}>
           <View style={[
-            styles.statusBadge, 
+            styles.statusBadge,
             item.isActive ? styles.active : styles.inactive
           ]}>
             <Text style={[
@@ -25,7 +25,7 @@ const RenderClass = ({ item }) => {
               {item.isActive ? 'نشط' : 'غير نشط'}
             </Text>
           </View>
-          
+
           <Text style={styles.className} >
             {item?.name}
           </Text>
@@ -62,7 +62,7 @@ const RenderClass = ({ item }) => {
               router.push(`/(teacher)/classes/${item.id}`);
             }}
           >
-            <Text style={styles.actionText}>إدارة الفصل التلاميذ</Text>
+            <Text style={styles.actionText}>إدارة قسم التلاميذ</Text>
           </TouchableOpacity>
         </View>
       </View>

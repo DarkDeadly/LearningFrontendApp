@@ -22,12 +22,12 @@ apiClient.interceptors.request.use(
   async (config) => {
     // Get access token from storage
     const token = await storage.getToken();
-    
+
     // Add token to request headers
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Log in development
     if (__DEV__) {
       console.log('📤 API Request:', {
@@ -36,7 +36,7 @@ apiClient.interceptors.request.use(
         headers: config.headers.Authorization ? '✅ Has Token' : '❌ No Token',
       });
     }
-    
+
     return config;
   },
   (error) => {
@@ -58,15 +58,21 @@ let failedQueue = [];          // Queue of requests waiting for refresh
  * @param {string|null} token - New token if refresh succeeded
  */
 const processQueue = (error, token = null) => {
-  failedQueue.forEach((promise) => {
-    if (error) {
-      promise.reject(error);
-    } else {
-      promise.resolve(token);
+  // Clear queue immediately to prevent memory leaks
+  const queue = [...failedQueue];
+  failedQueue = [];
+
+  queue.forEach((promise) => {
+    try {
+      if (error) {
+        promise.reject(error);
+      } else {
+        promise.resolve(token);
+      }
+    } catch (err) {
+      console.error('Error processing queued request:', err);
     }
   });
-  
-  failedQueue = [];
 };
 
 apiClient.interceptors.response.use(
@@ -82,7 +88,7 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  
+
   // ========================================
   // ERROR HANDLER
   // ========================================
@@ -101,16 +107,20 @@ apiClient.interceptors.response.use(
     // ========================================
     // CHECK IF WE SHOULD REFRESH TOKEN
     // ========================================
-    
+
+    // FIX: Get token once before condition to avoid race condition
+    const currentToken = await storage.getToken();
+
     // Don't refresh if:
     // 1. Error is not 401 (Unauthorized)
     // 2. We already tried to refresh this request
     // 3. The failing request IS the refresh endpoint itself
+    // 4. No token exists in storage
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
       originalRequest.url?.includes('/users/refresh') ||
-      !(await storage.getToken())  // ← If no token, don't try refresh
+      !currentToken
     ) {
       return Promise.reject(error);
     }
@@ -118,11 +128,11 @@ apiClient.interceptors.response.use(
     // ========================================
     // QUEUE MANAGEMENT
     // ========================================
-    
+
     // If we're already refreshing, add this request to the queue
     if (isRefreshing) {
       console.log('⏳ Queuing request while refresh in progress...');
-      
+
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
@@ -139,12 +149,12 @@ apiClient.interceptors.response.use(
     // ========================================
     // START REFRESH PROCESS
     // ========================================
-    
+
     console.log('🔄 Starting token refresh...');
-    
+
     // Mark this request as retried
     originalRequest._retry = true;
-    
+
     // Set flag to prevent concurrent refresh requests
     isRefreshing = true;
 
@@ -152,49 +162,58 @@ apiClient.interceptors.response.use(
       // ========================================
       // CALL REFRESH ENDPOINT
       // ========================================
-      
+
       console.log('📞 Calling refresh endpoint...');
-      
+
       const response = await axios.post(
         `${config.apiUrl}/users/refresh`,
         {},
-        { 
-          withCredentials: true  // Send refresh token cookie
+        {
+          withCredentials: true,  // Send refresh token cookie
+          timeout: 5000  // 5 second timeout for refresh
         }
       );
 
-      const { accessToken } = response.data;
-      
+      // ========================================
+      // VALIDATE RESPONSE STRUCTURE
+      // ========================================
+
+      const { accessToken } = response.data || {};
+
+      if (!accessToken || typeof accessToken !== 'string') {
+        throw new Error('Invalid refresh response: missing or invalid accessToken');
+      }
+
       console.log('✅ Got new access token');
 
       // ========================================
       // SAVE NEW TOKEN
       // ========================================
-      
+
       await storage.saveToken(accessToken);
       console.log('💾 Saved new token to storage');
 
       // ========================================
       // UPDATE DEFAULT HEADER
       // ========================================
-      
+
       // Update the default header for future requests
       apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-      
+
       // Update the failed request's header
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
       // ========================================
       // PROCESS QUEUED REQUESTS
       // ========================================
-      
+
       console.log(`✅ Processing ${failedQueue.length} queued requests`);
       processQueue(null, accessToken);
 
       // ========================================
       // RETRY ORIGINAL REQUEST
       // ========================================
-      
+
       console.log('🔁 Retrying original request...');
       return apiClient(originalRequest);
 
@@ -202,7 +221,7 @@ apiClient.interceptors.response.use(
       // ========================================
       // REFRESH FAILED
       // ========================================
-      
+
       console.error('❌ Token refresh failed:', refreshError);
 
       // Process queue with error
@@ -222,7 +241,7 @@ apiClient.interceptors.response.use(
       // ========================================
       // CLEANUP
       // ========================================
-      
+
       isRefreshing = false;
     }
   }

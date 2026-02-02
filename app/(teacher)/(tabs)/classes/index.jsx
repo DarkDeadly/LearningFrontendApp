@@ -35,12 +35,12 @@ const ClassScreen = () => {
           end={{ x: 1, y: 1 }}
           style={[styles.header, { paddingTop: insets.top + 20 }]}
         >
-          <Animated.View 
+          <Animated.View
             entering={FadeInRight.duration(600).springify()}
             style={styles.headerContent}
           >
-            <Text style={styles.headerTitle}>فصولي الدراسية</Text>
-            <Text style={styles.headerSubtitle}>إدارة فصولك وتلاميذك بسهولة</Text>
+            <Text style={styles.headerTitle}>اقسامي الدراسية</Text>
+            <Text style={styles.headerSubtitle}>إدارة اقسامك وتلاميذك بسهولة</Text>
           </Animated.View>
 
           {/* Floating + Button (FAB) */}
@@ -64,7 +64,7 @@ const ClassScreen = () => {
         {isLoading ? (
           <View style={styles.loading}>
             <ActivityIndicator size="large" color="#8B5CF6" />
-            <Text style={styles.loadingText}>جاري تحميل الفصول...</Text>
+            <Text style={styles.loadingText}>جاري تحميل الاقسام...</Text>
           </View>
         ) : classrooms?.length === 0 ? (
           <EmptyState />

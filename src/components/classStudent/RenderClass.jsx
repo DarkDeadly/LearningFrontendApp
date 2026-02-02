@@ -1,31 +1,73 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useProfile } from '../../hooks/useAuth';
+import { useCurrentUser } from '../../hooks/useAuth';
 import { useJoinClassroom } from '../../hooks/useClassroom';
 import { validateJoinClassroom } from '../../util/classValidation';
+import { sanitizeText } from '../../util/sanitization';
 
 const RenderClass = ({ item }) => {
     const [pin, setPin] = useState("");
     const [error, setError] = useState(null);
     const { mutate: joinClassroom, isPending: Loading, error: serverError } = useJoinClassroom();
-    const { data: user } = useProfile();
+    const { data: user } = useCurrentUser();
     const router = useRouter();
+
+    // FIX: Added rate limiting (3-second cooldown)
+    const [cooldown, setCooldown] = useState(0);
+    const [lastAttempt, setLastAttempt] = useState(0);
+
+    // FIX: Validate item exists
+    if (!item || !item._id) {
+        return null;
+    }
 
     const isJoined = user?.classroomId === item._id;
 
+    // Cooldown timer
+    useEffect(() => {
+        if (cooldown > 0) {
+            const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [cooldown]);
+
     const handleJoin = () => {
+        // FIX: Check rate limiting
+        const now = Date.now();
+        if (now - lastAttempt < 3000) {
+            setError('يرجى الانتظار قبل المحاولة مرة أخرى');
+            setCooldown(3);
+            return;
+        }
+
+        // Original validation
         const validationErrors = validateJoinClassroom(item._id, pin);
         if (Object.keys(validationErrors).length > 0) {
             setError("الرجاء إدخال رمز صحيح");
             return;
         }
+
         setError(null);
-        joinClassroom({ classroomId: item._id, pin }, { 
-            onSuccess: () => setPin('') 
+        setLastAttempt(now);
+        setCooldown(3);
+
+        joinClassroom({ classroomId: item._id, pin }, {
+            onSuccess: () => {
+                setPin('');
+                setCooldown(0);
+            },
+            onError: (err) => {
+                setCooldown(0);
+                setError(err?.response?.data?.message || 'فشل الانضمام إلى الفصل');
+            }
         });
     };
+
+    // FIX: Sanitize displayed text
+    const displayName = sanitizeText(item.name || 'فصل بدون اسم', 100);
+    const displayDescription = sanitizeText(item.description || '', 200);
 
     return (
         <View style={styles.classCard}>
@@ -37,7 +79,7 @@ const RenderClass = ({ item }) => {
                             {item.isActive ? 'نشط' : 'مغلق'}
                         </Text>
                     </View>
-                    <Text style={styles.className}>{item.name}</Text>
+                    <Text style={styles.className}>{displayName}</Text>
                 </View>
 
                 {/* Teacher & Date Info */}
@@ -54,8 +96,8 @@ const RenderClass = ({ item }) => {
                     </View>
                 </View>
 
-                {item.description && (
-                    <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
+                {displayDescription && (
+                    <Text style={styles.description} numberOfLines={2}>{displayDescription}</Text>
                 )}
 
                 {(error || serverError) && (
@@ -67,7 +109,7 @@ const RenderClass = ({ item }) => {
                 {/* Conditional Action Area */}
                 <View style={styles.actionsContainer}>
                     {isJoined ? (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.joinedButton}
                             onPress={() => router.push(`(pupil)/(tabs)/class/${item._id}`)}
                         >
@@ -76,12 +118,14 @@ const RenderClass = ({ item }) => {
                         </TouchableOpacity>
                     ) : (
                         <View style={styles.joinRow}>
-                            <TouchableOpacity 
-                                style={[styles.joinButton, Loading && { opacity: 0.7 }]}
+                            <TouchableOpacity
+                                style={[styles.joinButton, (Loading || cooldown > 0) && { opacity: 0.7 }]}
                                 onPress={handleJoin}
-                                disabled={Loading || pin.length < 4}
+                                disabled={Loading || pin.length < 4 || cooldown > 0}
                             >
-                                <Text style={styles.joinButtonText}>{Loading ? '...' : 'انضمام'}</Text>
+                                <Text style={styles.joinButtonText}>
+                                    {Loading ? 'جاري الانضمام...' : cooldown > 0 ? `انتظر ${cooldown}ث` : 'انضمام'}
+                                </Text>
                             </TouchableOpacity>
                             <TextInput
                                 style={[styles.pinInput, error && styles.inputError]}

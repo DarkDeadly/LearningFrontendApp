@@ -11,8 +11,8 @@ const ClassDetails = () => {
     const insets = useSafeAreaInsets();
     const router = useRouter();
     const { classid } = useLocalSearchParams();
-    
-    const { data: classroom, isLoading: isClassLoading } = useClassroomDetails(classid);
+
+    const { data: classroom, isLoading: isClassLoading, isError, error, refetch } = useClassroomDetails(classid);
     const { data: courses, isLoading: isCoursesLoading } = useGetCourses(classid);
     const courseContent = courses?.courses || [];
 
@@ -20,8 +20,8 @@ const ClassDetails = () => {
         <View style={styles.headerWrapper}>
             <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.header}>
                 {/* Custom Back Button */}
-                <TouchableOpacity 
-                    style={styles.backButton} 
+                <TouchableOpacity
+                    style={styles.backButton}
                     onPress={() => router.back()}
                 >
                     <Ionicons name="arrow-back-sharp" size={24} color="#fff" />
@@ -30,11 +30,11 @@ const ClassDetails = () => {
                 <Animated.Text entering={FadeInRight.delay(200)} style={styles.classTitle}>
                     {classroom?.name}
                 </Animated.Text>
-                
+
                 {classroom?.description && (
                     <Text style={styles.classDesc}>{classroom.description}</Text>
                 )}
-                
+
                 <View style={styles.statsRow}>
                     <View style={styles.statBadge}>
                         <Text style={styles.statText}>{courseContent.length} دروس متاحة</Text>
@@ -52,7 +52,7 @@ const ClassDetails = () => {
 
     const RenderCourseItem = ({ item, index }) => (
         <Animated.View entering={FadeInUp.delay(index * 100).duration(500)}>
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={styles.courseCard}
                 activeOpacity={0.7}
                 onPress={() => router.push(`(pupil)/(tabs)/class/${classid}/${item._id}`)}
@@ -68,16 +68,37 @@ const ClassDetails = () => {
                     </Text>
                 </View>
 
-              
+
             </TouchableOpacity>
         </Animated.View>
     );
 
+    // FIX: Added loading state
     if (isClassLoading) {
         return (
             <View style={styles.loading}>
                 <ActivityIndicator size="large" color="#8B5CF6" />
                 <Text style={styles.loadingText}>جاري تحضير الدروس...</Text>
+            </View>
+        );
+    }
+
+    // FIX: Added error state with retry
+    if (isError) {
+        return (
+            <View style={styles.loading}>
+                <Ionicons name="alert-circle-outline" size={64} color="#E74C3C" />
+                <Text style={styles.errorTitle}>حدث خطأ في تحميل الفصل</Text>
+                <Text style={styles.errorMessage}>
+                    {error?.response?.data?.message || 'يرجى المحاولة مرة أخرى'}
+                </Text>
+                <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={() => refetch()}
+                >
+                    <Ionicons name="refresh-outline" size={20} color="#fff" />
+                    <Text style={styles.retryText}>إعادة المحاولة</Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -131,21 +152,21 @@ const styles = StyleSheet.create({
     classTitle: { fontSize: 28, fontWeight: '900', color: '#fff', textAlign: 'right' },
     classDesc: { fontSize: 14, color: '#E0D4FF', textAlign: 'right', marginTop: 8, opacity: 0.9, lineHeight: 20 },
     statsRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 20 },
-    statBadge: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        backgroundColor: 'rgba(255,255,255,0.2)', 
-        paddingHorizontal: 14, 
-        paddingVertical: 7, 
-        borderRadius: 12 
+    statBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 14,
+        paddingVertical: 7,
+        borderRadius: 12
     },
     statText: { color: '#fff', marginRight: 8, fontSize: 13, fontWeight: '700' },
-    sectionHeader: { 
-        paddingHorizontal: 25, 
-        paddingTop: 25, 
-        flexDirection: 'row-reverse', 
-        alignItems: 'center', 
-        justifyContent: 'space-between' 
+    sectionHeader: {
+        paddingHorizontal: 25,
+        paddingTop: 25,
+        flexDirection: 'row-reverse',
+        alignItems: 'center',
+        justifyContent: 'space-between'
     },
     sectionTitle: { fontSize: 20, fontWeight: '800', color: '#1E293B' },
     activeIndicator: { width: 40, height: 4, backgroundColor: '#8B5CF6', borderRadius: 2, marginTop: 4, alignSelf: 'flex-end' },
@@ -179,6 +200,36 @@ const styles = StyleSheet.create({
     arrowContainer: { paddingRight: 5 },
     loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     loadingText: { marginTop: 12, color: '#8B5CF6', fontWeight: '600' },
+    // FIX: Added error state styles
+    errorTitle: {
+        marginTop: 16,
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#1E293B',
+        textAlign: 'center',
+    },
+    errorMessage: {
+        marginTop: 8,
+        fontSize: 14,
+        color: '#64748B',
+        textAlign: 'center',
+        paddingHorizontal: 20,
+    },
+    retryButton: {
+        marginTop: 24,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#8B5CF6',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 12,
+    },
+    retryText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
     emptyState: { alignItems: 'center', marginTop: 60, paddingHorizontal: 50 },
     emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
     emptyStateText: { fontSize: 18, fontWeight: '800', color: '#475569' },

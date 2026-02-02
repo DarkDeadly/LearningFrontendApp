@@ -10,16 +10,19 @@ export const useGivePoints = () => {
     mutationFn: ({ amount, classroomId, reason, pupilId }) =>
       pointApi.addPoints({ amount, reason, pupilId }, classroomId),
 
-    onSuccess: async(responseData, variables) => {
+    onSuccess: async (responseData, variables) => {
       const { classroomId, pupilId } = variables;
       const updatedUser = responseData.user;
 
       if (updatedUser) {
-        // 1. Update AsyncStorage (Persists the points)
-        await storage.saveUserData(updatedUser);
-
-        // 2. Update React Query Profile Cache (Instant UI update)
+        // FIX: Update cache FIRST for instant UI update (no await)
+        // This prevents race condition where UI waits for storage to complete
         queryClient.setQueryData(['profile'], updatedUser);
+
+        // Then save to storage in background (don't await to avoid blocking UI)
+        storage.saveUserData(updatedUser).catch(err =>
+          console.error('Failed to save user data to storage:', err)
+        );
       }
 
       queryClient.invalidateQueries(['classroom', classroomId, 'pupils']);
@@ -41,11 +44,14 @@ export const useReducePoints = () => {
       const updatedUser = responseData.user;
 
       if (updatedUser) {
-        // 1. Update AsyncStorage (Persists the points)
-        await storage.saveUserData(updatedUser);
-
-        // 2. Update React Query Profile Cache (Instant UI update)
+        // FIX: Update cache FIRST for instant UI update (no await)
+        // This prevents race condition where UI waits for storage to complete
         queryClient.setQueryData(['profile'], updatedUser);
+
+        // Then save to storage in background (don't await to avoid blocking UI)
+        storage.saveUserData(updatedUser).catch(err =>
+          console.error('Failed to save user data to storage:', err)
+        );
       }
 
       queryClient.invalidateQueries(['classroom', classroomId, 'pupils']);
@@ -54,12 +60,12 @@ export const useReducePoints = () => {
     onError: (error) => console.error("Error reducing points", error),
   });
 };
-export const useGetHistory =  (classroomId , pupilId) => {
-    return useQuery({
-        queryKey : ['history' , classroomId , pupilId],
-        queryFn : () => pointApi.getHistory(classroomId , pupilId),
-        staleTime: 7 * 60 * 1000,
-        enabled: !!classroomId && !!pupilId
+export const useGetHistory = (classroomId, pupilId) => {
+  return useQuery({
+    queryKey: ['history', classroomId, pupilId],
+    queryFn: () => pointApi.getHistory(classroomId, pupilId),
+    staleTime: 7 * 60 * 1000,
+    enabled: !!classroomId && !!pupilId
 
-    })
+  })
 }

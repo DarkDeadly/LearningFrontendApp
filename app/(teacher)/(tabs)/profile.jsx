@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCurrentUser, useLogout } from '../../../src/hooks/useAuth'; // ← your auth hooks
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCurrentUser, useLogout } from '../../../src/hooks/useAuth';
 
 const ProfileScreen = () => {
-  const { data: user } = useCurrentUser();
+  const { data: user, isLoading, isError, error, refetch } = useCurrentUser();
   const logoutMutation = useLogout();
 
   const handleLogout = () => {
@@ -22,7 +22,37 @@ const ProfileScreen = () => {
     );
   };
 
-  if (!user) return null; // Safety
+  // FIX: Added loading state
+  if (isLoading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#4A90E2" />
+        <Text style={styles.loadingText}>جاري التحميل...</Text>
+      </View>
+    );
+  }
+
+  // FIX: Added error state with retry
+  if (isError) {
+    return (
+      <View style={styles.centerContainer}>
+        <Ionicons name="alert-circle-outline" size={64} color="#E74C3C" />
+        <Text style={styles.errorTitle}>حدث خطأ في تحميل الملف الشخصي</Text>
+        <Text style={styles.errorMessage}>
+          {error?.response?.data?.message || 'يرجى المحاولة مرة أخرى'}
+        </Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => refetch()}
+        >
+          <Ionicons name="refresh-outline" size={20} color="#fff" />
+          <Text style={styles.retryText}>إعادة المحاولة</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -30,10 +60,10 @@ const ProfileScreen = () => {
       <LinearGradient colors={['#4A90E2', '#2171BE']} style={styles.header}>
         <Text style={styles.headerTitle}>ملفي الشخصي</Text>
 
-        {/* Anime Avatar - Replace with your asset or user's avatar */}
+        {/* Anime Avatar */}
         <View style={styles.avatarContainer}>
           <Image
-            source={require('../../../assets/images/professor.png')} // Your anime avatar
+            source={require('../../../assets/images/professor.png')}
             style={styles.avatar}
           />
         </View>
@@ -49,20 +79,15 @@ const ProfileScreen = () => {
         </View>
       </View>
 
-      {/* Achievement Badge (Optional) */}
+      {/* Achievement Badge */}
       <View style={styles.achievementBadge}>
         <Text style={styles.achievementText}>
           🎉 نصيحة: حافظ على بيانات حسابك آمنة وحذفها بشكل دوري
         </Text>
       </View>
 
-      {/* Buttons */}
+      {/* Buttons - FIX: Removed non-functional save button */}
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.saveButton}>
-          <Ionicons name="save-outline" size={24} color="#fff" />
-          <Text style={styles.saveText}>حفظ التغييرات</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[
             styles.logoutButton,
@@ -87,6 +112,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
+  },
+  // FIX: Added centered container for loading and error states
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F7FA',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#64748B',
+  },
+  errorTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    textAlign: 'center',
+  },
+  errorMessage: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   header: {
     alignItems: 'center',
@@ -116,8 +182,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
- 
-  
   section: {
     marginHorizontal: 20,
     marginTop: 20,
@@ -156,21 +220,6 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     margin: 20,
     marginBottom: 40,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    backgroundColor: '#2171BE',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  saveText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 10,
   },
   logoutButton: {
     flexDirection: 'row',

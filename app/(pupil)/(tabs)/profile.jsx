@@ -6,9 +6,9 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 import { useCurrentUser, useLogout } from '../../../src/hooks/useAuth'; // ← your auth hooks
 
 const ProfileScreen = () => {
-  const { data : user } = useCurrentUser();
+  const { data: user, isLoading, isError, error, refetch } = useCurrentUser();
   const logoutMutation = useLogout();
-  console.log("the user is " , user)
+  // FIX: Removed console.log from production code
 
   const handleLogout = () => {
     Alert.alert(
@@ -25,7 +25,37 @@ const ProfileScreen = () => {
     );
   };
 
-  if (!user) return null; // Safety
+  // FIX: Added loading state
+  if (isLoading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#4A90E2" />
+        <Text style={styles.loadingText}>جاري التحميل...</Text>
+      </View>
+    );
+  }
+
+  // FIX: Added error state with retry
+  if (isError) {
+    return (
+      <View style={styles.centerContainer}>
+        <Ionicons name="alert-circle-outline" size={64} color="#E74C3C" />
+        <Text style={styles.errorTitle}>حدث خطأ في تحميل الملف الشخصي</Text>
+        <Text style={styles.errorMessage}>
+          {error?.response?.data?.message || 'يرجى المحاولة مرة أخرى'}
+        </Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => refetch()}
+        >
+          <Ionicons name="refresh-outline" size={20} color="#fff" />
+          <Text style={styles.retryText}>إعادة المحاولة</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -52,7 +82,7 @@ const ProfileScreen = () => {
           <Text style={styles.coinEmoji}>🪙</Text>
         </View>
         <Text style={styles.pointsMessage}>
-        استمر في التعلم واجمع المزيد من النقاط
+          استمر في التعلم واجمع المزيد من النقاط
         </Text>
       </View>
 
@@ -71,13 +101,8 @@ const ProfileScreen = () => {
         </Text>
       </View>
 
-      {/* Buttons */}
+      {/* Buttons - FIX: Removed non-functional save button */}
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.saveButton}>
-          <Ionicons name="save-outline" size={24} color="#fff" />
-          <Text style={styles.saveText}>حفظ التغييرات</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[
             styles.logoutButton,
@@ -102,6 +127,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
+  },
+  // FIX: Added centered container for loading and error states
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F7FA',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#64748B',
+  },
+  errorTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    textAlign: 'center',
+  },
+  errorMessage: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   header: {
     alignItems: 'center',
@@ -133,7 +199,7 @@ const styles = StyleSheet.create({
   },
   pointsCard: {
     margin: 20,
-   
+
     backgroundColor: '#2171BE',
     borderRadius: 20,
     padding: 20,
@@ -207,21 +273,7 @@ const styles = StyleSheet.create({
     margin: 20,
     marginBottom: 40,
   },
-  saveButton: {
-    flexDirection: 'row',
-    backgroundColor: '#2171BE',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  saveText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 10,
-  },
+  // FIX: Removed saveButton styles (non-functional button removed)
   logoutButton: {
     flexDirection: 'row',
     backgroundColor: '#E74C3C',

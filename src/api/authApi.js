@@ -1,7 +1,8 @@
+import { storage } from "../util/storage";
 import apiClient from "./client";
 
 export const authAPI = {
-    register: async (fullname, email, password) => {
+  register: async (fullname, email, password) => {
     const response = await apiClient.post('/users/register', {
       fullname,
       email,
@@ -9,7 +10,7 @@ export const authAPI = {
     });
     return response.data;
   },
-   login: async (email, password) => {
+  login: async (email, password) => {
     const response = await apiClient.post('/users/login', {
       email,
       password,
@@ -17,14 +18,31 @@ export const authAPI = {
     return response.data;
   },
   logout: async () => {
-     await apiClient.post('/users/logout');
-    return true
+    try {
+      // Call logout endpoint
+      await apiClient.post('/users/logout');
+    } catch (error) {
+      // Log error but continue to clear local storage
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Always clear local storage, even if API call fails
+      await storage.clearAll();
+    }
+    return true;
   },
 
   // Logout from all devices
   logoutAll: async () => {
-    const response = await apiClient.post('/users/logoutAll');
-    return response.data;
+    try {
+      const response = await apiClient.post('/users/logoutAll');
+      return response.data;
+    } catch (error) {
+      console.error('LogoutAll API call failed:', error);
+      throw error;
+    } finally {
+      // Clear local storage even if API call fails
+      await storage.clearAll();
+    }
   },
 
   // Get user profile

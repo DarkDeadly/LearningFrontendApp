@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useProfile } from '../../../../../src/hooks/useAuth';
+import { useCurrentUser } from '../../../../../src/hooks/useAuth';
 import { useGetClassRewards, usePurchaseReward } from '../../../../../src/hooks/useRewards';
 
 const RewardItem = ({ item, userBalance, onPurchase, isPurchasing }) => {
@@ -26,8 +26,8 @@ const RewardItem = ({ item, userBalance, onPurchase, isPurchasing }) => {
     });
 
     return (
-        <Animated.View 
-            entering={FadeInDown.springify()} 
+        <Animated.View
+            entering={FadeInDown.springify()}
             style={styles.card}
         >
             {/* Top Row: Title and Cost */}
@@ -36,7 +36,7 @@ const RewardItem = ({ item, userBalance, onPurchase, isPurchasing }) => {
                     <Text style={styles.rewardName}>{item.name}</Text>
                     <Text style={styles.rewardExpiry}>ينتهي في: {formattedDate}</Text>
                 </View>
-                
+
                 <View style={styles.costContainer}>
                     <Text style={styles.costText}>{item.cost}</Text>
                     <Text style={styles.coinIcon}>🪙</Text>
@@ -56,10 +56,10 @@ const RewardItem = ({ item, userBalance, onPurchase, isPurchasing }) => {
                     <ActivityIndicator size="small" color="#FFF" />
                 ) : (
                     <View style={styles.btnContent}>
-                        <Ionicons 
-                            name={canAfford ? "cart-outline" : "lock-closed-outline"} 
-                            size={20} 
-                            color="#FFF" 
+                        <Ionicons
+                            name={canAfford ? "cart-outline" : "lock-closed-outline"}
+                            size={20}
+                            color="#FFF"
                             style={{ marginLeft: 8 }}
                         />
                         <Text style={styles.purchaseBtnText}>
@@ -76,8 +76,8 @@ const Rewards = () => {
     const { classid } = useLocalSearchParams();
     const insets = useSafeAreaInsets();
     const router = useRouter();
-    
-    const { data: profileData, isLoading: profileLoading } = useProfile();
+
+    const { data: profileData, isLoading: profileLoading } = useCurrentUser();
     const { data: classReward, isLoading: rewardsLoading } = useGetClassRewards(classid);
     const { mutate: purchase, isPending: isPurchasing } = usePurchaseReward();
 
@@ -95,7 +95,7 @@ const Rewards = () => {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-            
+
             <LinearGradient
                 colors={['#5B21B6', '#8B5CF6']}
                 style={[styles.header, { paddingTop: insets.top + 20 }]}
@@ -103,7 +103,7 @@ const Rewards = () => {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
                     <Ionicons name='arrow-back-sharp' size={24} color="#fff" />
                 </TouchableOpacity>
-                
+
                 <View style={styles.balanceRow}>
                     <View style={styles.balanceInfo}>
                         <Text style={styles.balanceLabel}>رصيدك الحالي</Text>
@@ -121,15 +121,15 @@ const Rewards = () => {
                 contentContainerStyle={styles.listPadding}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
-                    <RewardItem 
-                        item={item} 
+                    <RewardItem
+                        item={item}
                         userBalance={currentBalance}
                         onPurchase={(id) => purchase(id)}
                         isPurchasing={isPurchasing}
                     />
                 )}
                 ListHeaderComponent={() => (
-                    <Text style={styles.sectionTitle}>مكافآت الفصل الدراسي</Text>
+                    <Text style={styles.sectionTitle}>مكافآت القسم الدراسي</Text>
                 )}
                 ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
@@ -208,10 +208,10 @@ const styles = StyleSheet.create({
         marginBottom: 25,
     },
     rewardTextGroup: { flex: 1, alignItems: 'flex-end' },
-    rewardName: { 
-        fontSize: 20, 
-        fontWeight: '800', 
-        color: '#1E293B', 
+    rewardName: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#1E293B',
         textAlign: 'right',
         lineHeight: 28
     },

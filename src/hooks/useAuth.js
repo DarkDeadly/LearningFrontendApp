@@ -23,7 +23,7 @@ export const useLogin = () => {
       // This forces useCurrentUser to see the new user immediately
       queryClient.setQueryData(['profile'], data.user);
       // Invalidate profile query to refetch fresh data
- 
+
     },
     onError: (error) => {
       console.log('❌ Login failed:', error.response?.data?.message);
@@ -52,7 +52,7 @@ export const useRegister = () => {
       // This forces useCurrentUser to see the new user immediately
       queryClient.setQueryData(['profile'], data.user);
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-  
+
 
     },
 
@@ -70,16 +70,16 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: () => authAPI.logout(),
     onSuccess: async () => {
-      // 1. Clear physical storage first so 'initialData' can't find it
-      await storage.clearAll();
+      // Note: storage.clearAll() is already called in authAPI.logout()
+      // No need to clear storage again here
 
-      // 2. Set the user to null in the cache
+      // 1. Set the user to null in the cache
       queryClient.setQueryData(['profile'], null);
 
-      // 3. Remove the query entirely to stop observers
+      // 2. Remove the query entirely to stop observers
       queryClient.removeQueries({ queryKey: ['profile'] });
 
-      // 4. Optional: clear the rest
+      // 3. Clear all cached queries
       queryClient.clear();
     },
   });
@@ -98,39 +98,16 @@ export const useLogoutAll = () => {
     onSuccess: async () => {
       console.log('✅ Logged out from all devices');
 
-      await storage.clearAll();
+      // Note: storage is already cleared in authAPI.logoutAll()
       queryClient.clear();
     },
 
     onError: async (error) => {
       console.log('❌ Logout all error:', error);
 
-      await storage.clearAll();
+      // Note: storage is already cleared in authAPI.logoutAll()
       queryClient.clear();
     },
-  });
-};
-
-// ==========================================
-// 👤 GET PROFILE QUERY
-// ==========================================
-export const useProfile = () => {
-  return useQuery({
-    queryKey: ['profile'],
-
-    queryFn: async () => {
-      const response = await authAPI.getProfile();
-
-      // Update stored user data with fresh data
-      await storage.saveUserData(response.user);
-
-      return response.user;
-    },
-
-    // Only fetch if we have a token
-    enabled: false,  // We'll enable it manually when needed
-
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 // ==========================================
@@ -139,13 +116,13 @@ export const useProfile = () => {
 export const getStoredUser = async () => await storage.getUserData();
 export const useCurrentUser = (preLoadedData) => {
   return useQuery({
-    queryKey : ['profile'],
-    queryFn : async () => {
+    queryKey: ['profile'],
+    queryFn: async () => {
       const response = await authAPI.getProfile()
       await storage.saveUserData(response.user)
       return response.user
     },
-    initialData: preLoadedData, 
+    initialData: preLoadedData,
     staleTime: 5 * 60 * 1000,
   })
 };

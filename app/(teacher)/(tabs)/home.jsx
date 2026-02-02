@@ -42,12 +42,34 @@ const cards = [
 
 const homeScreen = () => {
   const router = useRouter();
-  const { data: user, isLoading, isFetching } = useCurrentUser();
+  const { data: user, isLoading, isFetching, isError, error, refetch } = useCurrentUser();
 
+  // FIX: Added loading state with centered container
   if (isLoading) {
     return (
-      <View >
+      <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#4A90E2" />
+        <Text style={styles.loadingText}>جاري التحميل...</Text>
+      </View>
+    );
+  }
+
+  // FIX: Added error state with retry button
+  if (isError) {
+    return (
+      <View style={styles.centerContainer}>
+        <Ionicons name="alert-circle-outline" size={64} color="#E74C3C" />
+        <Text style={styles.errorTitle}>حدث خطأ في تحميل البيانات</Text>
+        <Text style={styles.errorMessage}>
+          {error?.response?.data?.message || 'يرجى المحاولة مرة أخرى'}
+        </Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => refetch()}
+        >
+          <Ionicons name="refresh-outline" size={20} color="#fff" />
+          <Text style={styles.retryText}>إعادة المحاولة</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -105,6 +127,56 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F0F4F8',
+  },
+  // FIX: Added centered container for loading and error states
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F0F4F8',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#64748B',
+  },
+  errorTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    textAlign: 'center',
+  },
+  errorMessage: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  syncIndicator: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: '#4A90E2',
+    borderRadius: 20,
+    padding: 8,
   },
   header: {
     alignItems: 'center',

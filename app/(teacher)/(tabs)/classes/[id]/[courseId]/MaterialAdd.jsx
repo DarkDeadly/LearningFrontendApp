@@ -18,7 +18,7 @@ import {
 import { useMaterial } from '../../../../../../src/hooks/useMaterial';
 
 const MaterialAdd = () => {
-  const { id : classroomId, courseId } = useLocalSearchParams();
+  const { id: classroomId, courseId } = useLocalSearchParams();
   const { createMaterial, isCreating } = useMaterial(courseId, classroomId);
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
@@ -40,31 +40,31 @@ const MaterialAdd = () => {
   }, []);
 
   const handleCreateMaterial = () => {
-   if (!title.trim() || !file) return;
+    if (!title.trim() || !file) return;
 
-  const formData = new FormData();
-  formData.append('title', title);
+    const formData = new FormData();
+    formData.append('title', title);
 
-  // CRITICAL: Construct the file object manually
-  const fileToUpload = {
-    // Android needs the raw URI, iOS usually needs 'file://' removed
-    uri: Platform.OS === 'ios' ? file.uri.replace('file://', '') : file.uri,
-    name: file.name || 'audio.mp3',
-    type: file.mimeType || 'audio/mpeg',
-  };
+    // CRITICAL: Construct the file object manually
+    const fileToUpload = {
+      // Android needs the raw URI, iOS usually needs 'file://' removed
+      uri: Platform.OS === 'ios' ? file.uri.replace('file://', '') : file.uri,
+      name: file.name || 'audio.mp3',
+      type: file.mimeType || 'audio/mpeg',
+    };
 
-  // We append it as 'file' to match your backend: uploadAudio.single('file')
-  formData.append('file', fileToUpload );
+    // We append it as 'file' to match your backend: uploadAudio.single('file')
+    formData.append('file', fileToUpload);
 
-  createMaterial({ title, file: fileToUpload },
+    createMaterial({ title, file: fileToUpload },
       {
         onSuccess: () => {
-          Alert.alert('Success', 'Material created successfully!');
+          Alert.alert('تمت العملية بنجاح', 'تم إضافة المحتوى الدراسي بنجاح!');
           router.push(`(teacher)/(tabs)/classes/${classroomId}`)
         },
         onError: (error) => {
           const serverMsg = error?.response?.data?.message;
-          Alert.alert('Error', serverMsg || 'Failed to create material.');
+          Alert.alert('حدث خطأ', serverMsg || 'فشلت عملية إضافة المحتوى الدراسي.');
         },
       }
     );
@@ -74,12 +74,12 @@ const MaterialAdd = () => {
     <LinearGradient colors={['#4c669f', '#3b5998', '#192f6a']} style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.headerTitle}>Add New Material</Text>
+          <Text style={styles.headerTitle}>اضف محتوى دراسي جديد </Text>
 
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              placeholder="Material Title"
+              placeholder="عُنْوَانُ الدَّوْرَةِ الصَّوْتِيَّةِ"
               placeholderTextColor="rgba(255, 255, 255, 0.7)"
               value={title}
               onChangeText={setTitle}
@@ -87,13 +87,13 @@ const MaterialAdd = () => {
             />
           </View>
 
-          <TouchableOpacity 
-            style={[styles.filePickerButton, isCreating && styles.disabledButton]} 
+          <TouchableOpacity
+            style={[styles.filePickerButton, isCreating && styles.disabledButton]}
             onPress={pickDocument}
             disabled={isCreating}
           >
             <Ionicons name="mic" size={24} color="#fff" />
-            <Text style={styles.filePickerButtonText}>{file ? 'Change Audio' : 'Select Audio'}</Text>
+            <Text style={styles.filePickerButtonText}>{file ? 'Change Audio' : 'أَضِفْ دَوْرَةً صَوْتِيَّةً'}</Text>
           </TouchableOpacity>
 
           {file && (

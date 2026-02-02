@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RenderClass from '../../../../src/components/classStudent/RenderClass';
@@ -15,7 +16,7 @@ const ClassScreen = () => {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color="#8B5CF6" />
-        <Text style={styles.loadingText}>جاري تحميل الفصول المتاحة...</Text>
+        <Text style={styles.loadingText}>جاري تحميل الاقسام المتاحة...</Text>
       </View>
     );
   }
@@ -25,7 +26,7 @@ const ClassScreen = () => {
     return (
       <View style={styles.loading}>
         <Ionicons name="alert-circle-outline" size={64} color="#E74C3C" />
-        <Text style={styles.errorTitle}>حدث خطأ في تحميل الفصول</Text>
+        <Text style={styles.errorTitle}>حدث خطأ في تحميل الاقسام</Text>
         <Text style={styles.errorMessage}>
           {error?.response?.data?.message || 'يرجى المحاولة مرة أخرى'}
         </Text>

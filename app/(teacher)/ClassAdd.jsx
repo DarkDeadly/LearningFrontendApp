@@ -32,7 +32,7 @@ const ClassAddModal = () => {
       processedValue = value.replace(/[^0-9]/g, '').slice(0, 4);
     }
     setFormData(prev => ({ ...prev, [field]: processedValue }));
-    
+
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -82,7 +82,7 @@ const ClassAddModal = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flexOne}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -90,7 +90,7 @@ const ClassAddModal = () => {
           <Animated.View entering={FadeInDown.duration(600)} style={styles.formContainer}>
             <Text style={styles.sectionLabel}>المعلومات الأساسية</Text>
             <InputField
-              placeholder="مثال: رياضيات الصف الخامس"
+              placeholder="مثال: رياضيات القسم الخامس"
               value={formData.name}
               onChangeText={(val) => handleFieldChange('name', val)}
               error={errors.name}
@@ -101,7 +101,7 @@ const ClassAddModal = () => {
             <View style={styles.pinSection}>
               <Text style={styles.sectionLabel}>رمز الدخول (PIN)</Text>
               <Text style={styles.sectionDescription}>
-                سيستخدم الطلاب هذا الرمز المكون من 4 أرقام للدخول إلى هذا الفصل.
+                سيستخدم الطلاب هذا الرمز المكون من 4 أرقام للدخول إلى هذا القسم.
               </Text>
               <InputField
                 placeholder="1 2 3 4"
@@ -127,7 +127,7 @@ const ClassAddModal = () => {
                 style={styles.buttonGradient}
               >
                 <Text style={styles.buttonText}>
-                  {mutation.isPending ? 'جاري الإنشاء...' : 'تأكيد إنشاء الفصل'}
+                  {mutation.isPending ? 'جاري الإنشاء...' : 'تأكيد إنشاء القسم'}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

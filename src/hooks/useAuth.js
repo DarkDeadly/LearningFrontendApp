@@ -23,6 +23,8 @@ export const useLogin = () => {
       // This forces useCurrentUser to see the new user immediately
       queryClient.setQueryData(['profile'], data.user);
       // Invalidate profile query to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+
 
     },
     onError: (error) => {

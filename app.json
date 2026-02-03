@@ -3,8 +3,11 @@
     "name": " نبض التواصل",
     "slug": "LearningFrontend",
     "version": "1.0.0",
+    "cli": {
+      "appVersionSource": "remote"
+    },
     "orientation": "portrait",
-    "icon": "./assets/images/graduation.jpg",
+    "icon": "./assets/images/graduation-cap-45656.png",
     "scheme": "learningfrontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -19,7 +22,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.omrianis2.LearningFrontend"
     },
     "web": {
       "output": "static",
@@ -38,11 +42,18 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c2123213-e5c0-4e56-9076-a8b353925379"
+      }
     }
   }
 }

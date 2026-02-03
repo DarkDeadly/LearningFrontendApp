@@ -2,13 +2,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import classroomApi from "../api/classApi"
 
 export const useGetMyClassroom = () => {
-    return useQuery({
-       queryKey : ['classrooms' , 'my'] ,
-       queryFn : classroomApi.getMyClassrooms,
-       staleTime : 7 * 60 * 1000,
-       select: (data) => data.classrooms || []
+  return useQuery({
+    queryKey: ['classrooms', 'my'],
+    queryFn: classroomApi.getMyClassrooms,
+    staleTime: 7 * 60 * 1000,
+    select: (data) => data.classrooms || []
 
-    })
+  })
 }
 
 export const useGetClassroomPupils = (classroomId) => {
@@ -29,52 +29,61 @@ export const useGetAllClassrooms = () => {
 }
 
 export const useCreateClassroom = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn : (data) => classroomApi.createClassroom(data),
-        onSuccess : (response) => {
-              console.log('✅ Classroom created:', response);
-      
+  return useMutation({
+    mutationFn: (data) => classroomApi.createClassroom(data),
+    onSuccess: (response) => {
+      console.log('✅ Classroom created:', response);
+
       // Invalidate and refetch classrooms list
       queryClient.invalidateQueries({ queryKey: ['classrooms', 'my'] });
-      
+
     },
     onError: (error) => {
       console.error('❌ Create classroom error:', error);
     },
-        })
-    }
+  })
+}
 
 export const useJoinClassroom = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ classroomId, pin }) => 
+    mutationFn: ({ classroomId, pin }) =>
       classroomApi.joinClassroom(classroomId, pin),
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       console.log('✅ Joined classroom:', response);
-      
+
       // Invalidate user profile (classroomId changed)
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      
+
+      // Optimistically update the profile in cache
+      queryClient.setQueryData(['profile'], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          classroomId: variables.classroomId
+        };
+      });
+
       // Invalidate classroom details
       queryClient.invalidateQueries({ queryKey: ['classroom'] });
     },
     onError: (error) => {
       console.error('❌ Join classroom error:', error);
       const serverMessage = error.response?.data?.message || "حدث خطأ ما";
-  console.error('❌ Join classroom error:', serverMessage);
+      console.error('❌ Join classroom error:', serverMessage);
     },
   });
 };
 
 export const useClassroomDetails = (classroomId) => {
   return useQuery({
-    queryKey : ['classrooms' , classroomId ],
-    queryFn : () => classroomApi.getClassroomDetails(classroomId),
+    queryKey: ['classrooms', classroomId],
+    queryFn: () => classroomApi.getClassroomDetails(classroomId),
     staleTime: 7 * 60 * 1000,
     enabled: !!classroomId, // optional but recommended,
-    select : (data) => data.classroom || {}
-    })
+    select: (data) => data.classroom || {}
+  })
 }
